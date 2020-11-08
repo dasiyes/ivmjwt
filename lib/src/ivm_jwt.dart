@@ -2,6 +2,7 @@ import 'package:ivmjwt/src/jwt.dart';
 
 import 'jwt.dart';
 import 'jwk.dart';
+import 'utilities.dart';
 
 /// Ivmanto JWT
 ///
@@ -26,7 +27,7 @@ class IvmJWT extends JWT {
     // TODO: implement sign
   }
 
-  static Map<String, dynamic> verifyJWTRS256(String token) {
+  static Future<Map<String, dynamic>> verifyJWTRS256(String token) async {
     if (token.isNotEmpty) {
       /// Step-1: Check for token integrity (3 parts)
       ///
@@ -43,7 +44,12 @@ class IvmJWT extends JWT {
       final List<String> tokenSegments = token.split('.');
       if (tokenSegments.length == 3 && tokenSegments[2].length > 0) {
         // Decode and check the header value
-
+        try {
+          final jwtHeader = await Utilities.base64Decode(tokenSegments[0]);
+          print(jwtHeader);
+        } catch (e) {
+          rethrow;
+        }
       } else {
         // Token does not have 3 inetgrity parts
         throw Exception('Token integrity is broken!');
