@@ -1,3 +1,5 @@
+part of '../ivmjwt.dart';
+
 /// Registered JWT Claims
 ///
 /// Handles registered fields of JWT Claims

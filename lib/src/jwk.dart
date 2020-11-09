@@ -1,3 +1,5 @@
+part of '../ivmjwt.dart';
+
 /// JWK - JSON Web Keys
 ///
 /// This is must follow

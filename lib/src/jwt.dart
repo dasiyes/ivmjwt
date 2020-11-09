@@ -1,3 +1,5 @@
+part of '../ivmjwt.dart';
+
 /// Abstract JWT Token Class
 ///
 /// The definition of JWT Token implementation
