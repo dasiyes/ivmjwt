@@ -27,8 +27,10 @@ class IvmJWT extends JWT {
   ///
   static Future<Map<String, dynamic>> verifyJWTRS256(String token) async {
     Map<String, dynamic> result = {};
-    bool validHeader = false;
     String jwtHeader = '';
+    String jwtPayload = '';
+    bool validHeader = false;
+    bool validPayload = false;
 
     /// Step-1: Check for token integrity (3 parts)
     ///
@@ -57,23 +59,32 @@ class IvmJWT extends JWT {
     ///
     try {
       jwtHeader = await Utilities.base64Decode(tokenSegments[0]);
-      //TODO:[dedug] Remove 1 line below after debuging
-      print('jwtHeader: $jwtHeader type: ${jwtHeader.runtimeType}');
     } catch (e) {
-      rethrow;
+      throw Exception('Error decoding header segment! $e.');
     }
 
     // Verify if the header is a valid JSON
     try {
       validHeader = await Utilities.validateSegmentToJSON(jwtHeader);
-      stdout.writeln('JWT Header valid?: $validHeader');
     } catch (e) {
-      stdout.writeln('Error validating JWT token header! $e.');
-      rethrow;
+      throw Exception('Error validating header segment! $e.');
     }
 
     /// Base64url-decode the Payload, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Payload is a valid JSON object.
     ///
+    try {
+      jwtPayload = await Utilities.base64Decode(tokenSegments[1]);
+      print('jwtPayload: $jwtPayload');
+    } catch (e) {
+      throw Exception('Error decoding payload segment! $e.');
+    }
+
+    // Verify if the payload is a valid JSON
+    try {
+      validPayload = await Utilities.validateSegmentToJSON(jwtPayload);
+    } catch (e) {
+      throw Exception('Error validating header segment! $e.');
+    }
 
     return result;
   } // end of verifyJWTRS256

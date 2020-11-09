@@ -6,9 +6,7 @@
 library ivmjwt;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'src/jwt.dart';
 part 'src/jwk.dart';

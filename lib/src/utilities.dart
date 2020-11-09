@@ -38,9 +38,19 @@ class Utilities {
   /// It will respect RFC8259 but not in any matter fully implement it.
   ///
   static bool validateSegmentToJSON(String segment) {
+    /// Private function to verify if string value converts well to int or double.
+    bool _isNum(String source) {
+      try {
+        num.parse(source);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     // Verify if the value provided satisfy minimum requirements
     if (segment.isEmpty || segment.trim().length < 7) {
-      throw Exception('Invalid header string length!');
+      throw Exception('Invalid segment string length!');
     }
 
     // Verify the segment value is properlly noteted as per requiremnts
@@ -51,21 +61,36 @@ class Utilities {
 
       // Verify body of the segment string has at least 1 (one) (k,v) pair.
       final List<String> bodyParts = segmentBody.trim().split(',');
+
       if (bodyParts.isNotEmpty && bodyParts.length > 0) {
-        // Verify if each part consists from a colon(:) splited, double quoted strings.
+        // Verify if each part consists from a colon(:) splited,
+        // correctly formatted keys and values.
         bodyParts.forEach((element) {
           try {
-            final List<String> kv = element.split(':');
+            final List<String> kv = element.split(RegExp(r":(?!//)"));
             if (kv.isNotEmpty && kv.length == 2) {
               kv.forEach((node) {
-                // Verify if double quotes(") are around every node of kv pair.
-                if (!(node.trim().startsWith("\"")) ||
-                    !(node.trim().endsWith("\""))) {
-                  throw Exception('Invalid quotation of keys and values!');
+                // Verify if each node of (K,V) pair meets at least one of the
+                // conditions from the below list:
+                // * surrounded by: "", [] or {}
+                // * null, false or true
+                // * is [int] or [double] runtimeType
+                if (node == 'false' ||
+                    node == 'true' ||
+                    node == 'null' ||
+                    _isNum(node) ||
+                    (node.startsWith("[") && node.endsWith("]")) ||
+                    (node.startsWith("{") && node.endsWith("}")) ||
+                    (node.startsWith("\"") && node.endsWith("\""))) {
+                  // do nothing
+                } else {
+                  throw Exception('Invalid quotation of keys or values!');
                 }
               });
             } else {
-              throw Exception('Invalid key-value pair in the header!');
+              print(element);
+              print(kv);
+              throw Exception('Invalid key-value pair in the segment value!');
             }
           } catch (e) {
             rethrow;
@@ -76,10 +101,10 @@ class Utilities {
 
         // -=- -=-
       } else {
-        throw Exception('Invalid header body content!');
+        throw Exception('Invalid segment body content!');
       }
     } else {
-      throw Exception('Invalid header format!');
+      throw Exception('Invalid segment format!');
     }
   }
 }
