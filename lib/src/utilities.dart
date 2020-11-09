@@ -13,8 +13,6 @@ class Utilities {
     // Decode in UTF string
     try {
       return utf8.decode(encIntList, allowMalformed: false);
-      // TODO:[debug] remove 1 line below after debugging
-      // return "{alg: \"RS256\", typ: \"JWT\"}";
     } catch (e) {
       rethrow;
     }

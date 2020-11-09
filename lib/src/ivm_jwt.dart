@@ -8,7 +8,7 @@ class IvmJWT extends JWT {
   IvmJWT();
 
   JWK key;
-  Map<String, String> header;
+  SegmentHeader header;
   Map<String, dynamic> payload;
   String signature;
   String token;
@@ -26,66 +26,30 @@ class IvmJWT extends JWT {
   /// Verify JWT RS256 signed token
   ///
   static Future<Map<String, dynamic>> verifyJWTRS256(String token) async {
-    Map<String, dynamic> result = {};
-    String jwtHeader = '';
-    String jwtPayload = '';
-    bool validHeader = false;
-    bool validPayload = false;
+    // Verified Segment Header
+    SegmentHeader vSegHeader;
 
-    /// Step-1: Check for token integrity (3 parts)
-    ///
-    if (token.isEmpty) {
-      throw Exception('Invalid or empty token provided!');
+    Map<String, dynamic> result = {
+      "message": "you have to wait for your token validation! :)"
+    };
+
+    // Step-1 Check the token integrity
+    final _integrity = await _checkTokenIntegrity(token);
+
+    // Once verified ...
+    if (_integrity['valid'] as bool) {
+      // ... set the Header values to be sent to step-2 checking signature
+      vSegHeader = SegmentHeader.fromJson(json.decode(_integrity['header']));
+
+      // ... set the Payload (claims)
+      //TODO: create the payload class...
+      String payload = _integrity['payload'].toString();
+
+      print("alg: ${vSegHeader.alg} and payload: $payload");
     }
+    // Step-2 Check the signature
 
-    /// Check that the JWT is well-formed
-    /// Ensure that the JWT conforms to the structure of a JWT. If this fails, the token is considered invalid, and the request must be rejected.
-    ///
-
-    /// Parse the JWT to extract its three components. The first segment is the Header, the second is the Payload, and the third is the Signature. Each segment is base64url encoded.
-    ///
-    final List<String> tokenSegments = token.split('.');
-
-    /// Verify that the JWT contains three segments, separated by two period ('.') characters.
-    ///
-    if (!(tokenSegments.length == 3) || !(tokenSegments[2].length > 0)) {
-      // Token does not have 3 inetgrity parts
-      throw Exception('Token integrity is broken!');
-    }
-
-    /// Decode and check the header value
-    ///
-    /// Base64url-decode the Header, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Header is a valid JSON object.
-    ///
-    try {
-      jwtHeader = await Utilities.base64Decode(tokenSegments[0]);
-    } catch (e) {
-      throw Exception('Error decoding header segment! $e.');
-    }
-
-    // Verify if the header is a valid JSON
-    try {
-      validHeader = await Utilities.validateSegmentToJSON(jwtHeader);
-    } catch (e) {
-      throw Exception('Error validating header segment! $e.');
-    }
-
-    /// Base64url-decode the Payload, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Payload is a valid JSON object.
-    ///
-    try {
-      jwtPayload = await Utilities.base64Decode(tokenSegments[1]);
-      print('jwtPayload: $jwtPayload');
-    } catch (e) {
-      throw Exception('Error decoding payload segment! $e.');
-    }
-
-    // Verify if the payload is a valid JSON
-    try {
-      validPayload = await Utilities.validateSegmentToJSON(jwtPayload);
-    } catch (e) {
-      throw Exception('Error validating header segment! $e.');
-    }
-
+    // Supposed to be the decoded JWT
     return result;
   } // end of verifyJWTRS256
 }
