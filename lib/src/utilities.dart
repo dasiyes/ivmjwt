@@ -105,4 +105,38 @@ class Utilities {
       throw Exception('Invalid segment format!');
     }
   }
+
+  /// Get Object Data tool
+  ///
+  static List<String> getObjectDefNames(Object obj, String what) {
+    // Prep the result list
+    List<String> result = [];
+    var def_mirror;
+
+    try {
+      InstanceMirror instance_mirror = reflect(obj);
+      def_mirror = instance_mirror.type;
+    } catch (e) {
+      throw Exception('Error while getting the mirror system! $e.');
+    }
+
+    for (var v in def_mirror.declarations.values) {
+      if (what == 'fields' ||
+          what == 'field' ||
+          what == 'properties' ||
+          what == 'property') {
+        if (v is VariableMirror) {
+          var fname = MirrorSystem.getName(v.simpleName);
+          result.add(fname);
+        }
+      } else if (what == 'method' || what == 'methods') {
+        if (v is MethodMirror) {
+          var mname = MirrorSystem.getName(v.simpleName);
+          result.add(mname);
+        }
+      }
+    }
+    // Return the list
+    return result;
+  }
 }

@@ -28,6 +28,7 @@ class IvmJWT extends JWT {
   static Future<Map<String, dynamic>> verifyJWTRS256(String token) async {
     // Verified Segment Header
     SegmentHeader vSegHeader;
+    SegmentPayload vSegPayload;
 
     Map<String, dynamic> result = {
       "message": "you have to wait for your token validation! :)"
@@ -42,10 +43,11 @@ class IvmJWT extends JWT {
       vSegHeader = SegmentHeader.fromJson(json.decode(_integrity['header']));
 
       // ... set the Payload (claims)
-      //TODO: create the payload class...
-      String payload = _integrity['payload'].toString();
+      vSegPayload = SegmentPayload.fromJson(json.decode(_integrity['payload']));
+      // String payload = _integrity['payload'].toString();
 
-      print("alg: ${vSegHeader.alg} and payload: $payload");
+      print(
+          "alg: ${vSegHeader.alg} and payload: ${vSegPayload.iss}, email: ${vSegPayload._properties['email']}");
     }
     // Step-2 Check the signature
 
