@@ -6,11 +6,11 @@
 library ivmjwt;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 // The JWT
 part 'src/jwt/jwt.dart';

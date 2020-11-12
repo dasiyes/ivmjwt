@@ -35,7 +35,7 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   /// Base64url-decode the Header, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Header is a valid JSON object.
   ///
   try {
-    jwtHeader = await Utilities.base64Decode(tokenSegments[0]);
+    jwtHeader = await Utilities.base64UrlDecode(tokenSegments[0]);
   } catch (e) {
     throw Exception('Error decoding header segment! $e.');
   }
@@ -50,7 +50,7 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   /// Base64url-decode the Payload, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Payload is a valid JSON object.
   ///
   try {
-    jwtPayload = await Utilities.base64Decode(tokenSegments[1]);
+    jwtPayload = await Utilities.base64UrlDecode(tokenSegments[1]);
   } catch (e) {
     throw Exception('Error decoding payload segment! $e.');
   }

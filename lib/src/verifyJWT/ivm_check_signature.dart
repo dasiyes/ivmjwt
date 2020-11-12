@@ -2,21 +2,39 @@ part of '../../ivmjwt.dart';
 
 /// Check signature
 
-// The last segment of a JWT is the signature, which is used to verify that the token was signed by the sender and not altered in any way. The Signature is created using the Header and Payload segments, a signing algorithm, and a secret or public key (depending on the chosen signing algorithm).
-bool _verifySignature(String header, String payload) {}
-// To verify the signature, you will need to:
+/// The last segment of a JWT is the signature, which is used to verify that the token was signed by the sender and not altered in any way. The Signature is created using the Header and Payload segments, a signing algorithm, and a secret or public key (depending on the chosen signing algorithm).
+///
+/// * Check the signing algorithm.
+/// * Retrieve the alg property from the decoded Header.
+/// * Ensure that it is an allowed algorithm. Specifically, to avoid certain attacks, make sure you disallow none.
+/// * Check that it matches the algorithm selected in the verification function name [e.g. verifyRS256].
+/// * Confirm that the token is correctly signed using the proper key.
+///
+/// **To verify the signature, you will need to:**
+///
+/// * 1. To verify that the signature is correct, you need to generate a new Base64url-encoded signature using the public key (RS256) or secret (HS256) and verify that it matches the original Signature included with the JWT:*
+///
+Future<bool> _verifySignature(
+    {@required String header,
+    @required String payload,
+    @required String token,
+    @required String alg,
+    String kid,
+    String pubKey}) async {
+  // step-PREP-0
+  final List<String> tokenSegments = token.split('.');
+  final orgSignature = tokenSegments[2];
+  print('the org signature: $orgSignature');
 
-// Check the signing algorithm.
+  // step-PREP-1: get the public key:
+  // ...
 
-// Retrieve the alg property from the decoded Header.
+  // step-1 [RS256]: new Base64Url-encoded signature using the public key
+}
 
-// Ensure that it is an allowed algorithm. Specifically, to avoid certain attacks, make sure you disallow none.
+//
 
-// Check that it matches the algorithm you selected when you registered your Application or API with Auth0.
-
-// Confirm that the token is correctly signed using the proper key.
-
-// To verify that the signature is correct, you need to generate a new Base64url-encoded signature using the public key (RS256) or secret (HS256) and verify that it matches the original Signature included with the JWT:
+//
 
 // Take the original Base64url-encoded Header and original Base64url-encoded Payload segments (Base64url-encoded Header + "." + Base64url-encoded Payload), and hash them with SHA-256.
 
