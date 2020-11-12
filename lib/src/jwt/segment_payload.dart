@@ -59,8 +59,7 @@ class SegmentPayload implements RegisteredClaims {
 }
 
 SegmentPayload _SegmentPayloadFromJson(Map<String, dynamic> jpld) {
-  print('json: ${jpld}');
-
+  // TODO: Debug for all possible cases of convertion of aud from Srtring into a list;
   // Converting aud vlue to a list
   List<String> audList = [];
   if ((jpld['aud'].toString().startsWith('['))) {
@@ -74,57 +73,20 @@ SegmentPayload _SegmentPayloadFromJson(Map<String, dynamic> jpld) {
     iss: jpld['iss'],
     sub: jpld['sub'],
     aud: audList,
-    // aud: (jpld['aud'] as List)?.map((e) => e as String)?.toList(),
     exp: jpld['exp'] as int,
     nbf: jpld['nbf'] as int,
     iat: jpld['iat'] as int,
     jti: jpld['jti'],
   );
 
+  // Get the list of the object's properties
   List<String> spFields = Utilities.getObjectDefNames(sgp, 'fields');
-
-  print('list of fields: $spFields');
 
   // Go over all json elements
   jpld.forEach((key, value) {
     // if the key is not in the current Object
-
-    print('key: $key, value: $value');
-
     if (!spFields.contains(key)) {
-      print('key $key is not in the spFields');
-      print('value is from runningType: ${value.runtimeType}');
-
-      String firstChar = value.toString().substring(0, 1);
-      switch (firstChar) {
-        case '[':
-          sgp.from({'$key': (jpld['$key'] as List)});
-          // [] = (jpld['$key'] as List)?.map((e) => e as String)?.toList();
-          break;
-        case '{':
-          sgp.from({'$key': (jpld['$key'] as Map)});
-          break;
-        case '\"':
-          sgp.from({'$key': value.toString()});
-          break;
-        default:
-          switch (value) {
-            case 'true':
-              sgp.from({'$key': true});
-              break;
-            case 'false':
-              sgp.from({'$key': false});
-              break;
-            case 'null':
-              sgp.from({'$key': null});
-              break;
-            default:
-              // sgp.from({'$key': num.parse(value)});
-              sgp.from({'$key': value.toString()});
-              break;
-          }
-          break;
-      }
+      sgp.from({'$key': value.toString()});
     }
   });
 

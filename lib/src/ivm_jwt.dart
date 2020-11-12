@@ -50,6 +50,7 @@ class IvmJWT extends JWT {
           "alg: ${vSegHeader.alg} and payload: ${vSegPayload.iss}, email: ${vSegPayload._properties['email']}");
     }
     // Step-2 Check the signature
+    TODO: // Implement signature check ...
 
     // Supposed to be the decoded JWT
     return result;
