@@ -11,14 +11,6 @@ part of '../../ivmjwt.dart';
 /// In addition to the common parameters, each JWK will have members that are key type specific. These members represent the parameters of the key. Section 6 of the JSON Web Algorithms (JWA) [JWA] specification defines multiple kinds of cryptographic keys and their associated members.
 
 abstract class JWK {
-  JWK(String kty,
-      {String use = null,
-      String alg = null,
-      String kid = null,
-      String key_ops = null,
-      String n = null,
-      String e = null});
-
   /// "kty" (Key Type) Parameter
   ///
   /// The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or be a value that contains a Collision- Resistant Name. The "kty" value is a case-sensitive string. This member [MUST] be present in a JWK.
@@ -26,16 +18,6 @@ abstract class JWK {
   /// A list of defined "kty" values can be found in the IANA "JSON Web Key Types" registry established by [JWA]; the initial contents of this registry are the values defined in Section 6.1 of [JWA].
   ///
   String _kty;
-
-  set kty(String value) {
-    if (['EC', 'RSA', 'oct'].contains(value)) {
-      this._kty = value;
-    }
-  }
-
-  get kty {
-    return this._kty;
-  }
 
   /// "use" (Public Key Use) Parameter
   ///
@@ -116,4 +98,28 @@ abstract class JWK {
   /// The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second factor. It is represented as a Base64urlUInt-encoded value.
   ///
   String qi;
+
+  JWK(String kty,
+      {String use = null,
+      String alg = null,
+      String kid = null,
+      String key_ops = null,
+      String n = null,
+      String e = null}) {
+    if (['EC', 'RSA', 'oct'].contains(kty)) {
+      this._kty = kty;
+    } else {
+      throw Exception('Unacceptable value for the key type!');
+    }
+  }
+
+  set kty(String value) {
+    if (['EC', 'RSA', 'oct'].contains(value)) {
+      this._kty = value;
+    }
+  }
+
+  get kty {
+    return this._kty;
+  }
 }

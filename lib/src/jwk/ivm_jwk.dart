@@ -4,20 +4,7 @@ part of '../../ivmjwt.dart';
 ///
 /// This implementation is to handle RS256 tokens
 ///
-class IvmRS256JWK implements JWK {
-  @override
-  void set kty(String value) {
-    if (['EC', 'RSA', 'oct'].contains(value)) {
-      this._kty = value;
-    } else {
-      throw Exception('Unacceptable value for the key type!');
-    }
-  }
-
-  get kty {
-    return this._kty;
-  }
-
+class IvmRS256JWK extends JWK {
   @override
   String _kty;
 
@@ -63,13 +50,9 @@ class IvmRS256JWK implements JWK {
       String this.key_ops = null,
       String this.kid = null,
       String this.n = null,
-      String this.e = null}) {
-    if (['EC', 'RSA', 'oct'].contains(kty)) {
-      this._kty = kty;
-    } else {
-      throw Exception('Unacceptable value for the key type!');
-    }
-  }
+      String this.e = null})
+      : super(kty, alg: alg, use: use, key_ops: key_ops, kid: kid, n: n, e: e);
+
   factory IvmRS256JWK.fromJson(Map<String, dynamic> json) =>
       _IvmRS256JWKFromJson(json);
 }
