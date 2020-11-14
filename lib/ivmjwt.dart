@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
+// import 'package:pointycastle/asymmetric/api.dart';
+import 'package:pointycastle/export.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -19,7 +21,10 @@ part 'src/jwt/segment_payload.dart';
 part 'src/jwt/registered_jwt_claims.dart';
 // ----
 
-part 'src/jwk.dart';
+// The JWK
+part 'src/jwk/jwk.dart';
+part 'src/jwk/ivm_jwk.dart';
+//---
 
 // The ivmJWT
 part 'src/ivm_jwt.dart';

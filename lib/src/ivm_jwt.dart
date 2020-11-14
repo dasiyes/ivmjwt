@@ -51,6 +51,7 @@ class IvmJWT extends JWT {
       }
 
       // A valid header MUST have a key 'alg' and its value MUST NOT be 'none';
+      ALG_CHECK:
       try {
         validAlg = (vSegHeader.alg != 'none' &&
             vSegHeader.alg != '' &&
@@ -72,24 +73,27 @@ class IvmJWT extends JWT {
       throw Exception('Token integrity validation has failed!');
     }
 
+    // Signature verification result prep
+    bool _signature = false;
+
     // TODO: JWT-1 Implement signature check ...
     // Step-2 Check the signature
     if (vSegHeader != null && vSegPayload != null && validAlg) {
       // trigger verification step-2 here...
-      bool _signature = false;
       print(
           "alg: ${vSegHeader.alg} and payload: ${vSegPayload.iss}, email: ${vSegPayload._properties['email']}");
 
-      // Send either kid or pubKey value to signature verification
-      if (pubKey != null && vSegHeader.kid == null) {
-        _signature = await _verifySignature(
+      // Send either kid or pubKey value to signature verification.
+      // If pubKey is provided (prefered) it wil be used. Alternativelly kid will be sent.
+      if (pubKey != null) {
+        _signature = await _verifyRS256Signature(
             header: _integrity['header'],
             payload: _integrity['payload'],
             token: token,
             alg: vSegHeader.alg,
             pubKey: pubKey);
       } else if (pubKey == null && vSegHeader.kid != null) {
-        _signature = await _verifySignature(
+        _signature = await _verifyRS256Signature(
             header: _integrity['header'],
             payload: _integrity['payload'],
             token: token,
@@ -97,13 +101,14 @@ class IvmJWT extends JWT {
             kid: vSegHeader.kid);
       } else {
         throw Exception(
-            'Insuficient data provided for the token verification!');
+            'Insuficient data provided for the token signature verification!');
       }
     } else {
       throw Exception('The token signature verification not possible!');
     }
 
     // Step-3 here ...
+    print('signature verification: $_signature');
     // ...
 
     // Supposed to be the decoded JWT
