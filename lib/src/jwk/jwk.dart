@@ -113,6 +113,9 @@ abstract class JWK {
     }
   }
 
+  /// Instantiate an object from a json object
+  JWK.fromJson(Map<String, dynamic> json);
+
   set kty(String value) {
     if (['EC', 'RSA', 'oct'].contains(value)) {
       this._kty = value;

@@ -25,14 +25,15 @@ class IvmJWT extends JWT {
 
   /// Verify JWT RS256 signed token
   ///
-  /// This method will verify JWT token signed with RS256 algorithm.
-  /// If the parameter pubKey is omited, the method would expect kid property to be provided in the token header. In this option the libaray has to be configured properly to acquire the JWK from external API system.
-  static Future<Map<String, dynamic>> verifyJWTRS256(String token,
-      [String pubKey = null]) async {
+  /// This method will verify JWT [token] signed with RS256 algorithm.
+  /// [jwks] is expected key set containing the public key that signed the token. The string content should represent a valid json object.
+  static Future<Map<String, dynamic>> verifyJWTRS256(
+      String token, String jwks) async {
     // Verified Segment Header
     SegmentHeader vSegHeader;
     SegmentPayload vSegPayload;
     bool validAlg = false;
+    bool validJWKS = false;
 
     Map<String, dynamic> result = {
       "message": "you have to wait for your token validation! :)"
@@ -51,7 +52,6 @@ class IvmJWT extends JWT {
       }
 
       // A valid header MUST have a key 'alg' and its value MUST NOT be 'none';
-      ALG_CHECK:
       try {
         validAlg = (vSegHeader.alg != 'none' &&
             vSegHeader.alg != '' &&
@@ -73,41 +73,47 @@ class IvmJWT extends JWT {
       throw Exception('Token integrity validation has failed!');
     }
 
+    /// For signature verification the [jwks] is required. It must run over json validation first.
+    ///
+    // TODO: verify the [jwks] if it is a vlid json object
+    //
+    // Verify if the jwks is a valid JSON
+    try {
+      validJWKS = await Utilities.validateSegmentToJSON(jwks);
+    } catch (e) {
+      throw Exception('Error validating header segment! $e.');
+    }
+
     // Signature verification result prep
     bool _signature = false;
 
     // TODO: JWT-1 Implement signature check ...
     // Step-2 Check the signature
-    if (vSegHeader != null && vSegPayload != null && validAlg) {
+    if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS) {
       // trigger verification step-2 here...
       print(
           "alg: ${vSegHeader.alg} and payload: ${vSegPayload.iss}, email: ${vSegPayload._properties['email']}");
 
-      // Send either kid or pubKey value to signature verification.
-      // If pubKey is provided (prefered) it wil be used. Alternativelly kid will be sent.
-      if (pubKey != null) {
-        _signature = await _verifyRS256Signature(
-            header: _integrity['header'],
-            payload: _integrity['payload'],
-            token: token,
-            alg: vSegHeader.alg,
-            pubKey: pubKey);
-      } else if (pubKey == null && vSegHeader.kid != null) {
-        _signature = await _verifyRS256Signature(
-            header: _integrity['header'],
-            payload: _integrity['payload'],
-            token: token,
-            alg: vSegHeader.alg,
-            kid: vSegHeader.kid);
-      } else {
-        throw Exception(
-            'Insuficient data provided for the token signature verification!');
-      }
+      /// [header] the token header string
+      /// [payload] the token payload
+      /// [token] the original token value supplied to this function
+      /// [alg] the signing algorithm as defined in the token header
+      /// [jwks] set of keys to get the public key from it.
+      /// [kid] is the key id that will be used to identify the exact JWK from the set.
+      ///
+      _signature = await _verifyRS256Signature(
+          header: _integrity['header'],
+          payload: _integrity['payload'],
+          token: token,
+          alg: vSegHeader.alg,
+          jwks: jwks,
+          kid: vSegHeader.kid);
     } else {
       throw Exception('The token signature verification not possible!');
     }
 
-    // Step-3 here ...
+    // Step-3: Verify the token time validity: exp and if exist iat & nbf
+    // Optionally verify iss for existance.
     print('signature verification: $_signature');
     // ...
 

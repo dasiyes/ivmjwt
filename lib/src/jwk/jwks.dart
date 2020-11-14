@@ -20,7 +20,8 @@ abstract class JWKS implements JWK {
     if (!_jwks.keys.contains('keys')) {
       throw e;
     } else {
-      if (!_jwks.keys.runtimeType.toString().startsWith('JSArray')) {
+      if (!_jwks['keys'].runtimeType.toString().startsWith('JSArray')) {
+        print('...parameter type is: ${_jwks.keys.runtimeType.toString()}');
         throw e;
       }
     }

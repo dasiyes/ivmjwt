@@ -17,27 +17,21 @@ Future<bool> _verifyRS256Signature(
     @required String payload,
     @required String token,
     @required String alg,
-    String kid = null,
-    String pubKey = null}) async {
+    @required String kid,
+    @required String jwks}) async {
   // step-PREP-0
   final List<String> tokenSegments = token.split('.');
   RSAPublicKey _usePKey;
 
   // step-PREP-1: get the public key:
   //
-  // The public key value can be supplied to this method either directly throgh pubKey parameter (PEm format) or as kid (key id) value for acquiring it from an external API. The second option requires this libarary to be properlly configured with API url.
-  if (pubKey != null) {
-    // use the provided pubKey PEM value
-    // TODO: implement covertion of string PEM key into RSAPublicKey
-    _usePKey = null;
-  } else if (pubKey == null && kid != null) {
-    try {
-      _usePKey = await Utilities.getJWK(kid);
-    } catch (e) {
-      throw Exception(
-          'Unable to acquire public key for signature verification! $e.');
-    }
+  try {
+    _usePKey = await Utilities.getJWK(jwks, kid);
+  } catch (e) {
+    throw Exception(
+        'Unable to acquire public key for signature verification! $e.');
   }
+
 
   // Verify if the algorithm matches the
   if (alg == 'RS256') {

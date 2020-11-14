@@ -148,7 +148,7 @@ class Utilities {
   /// the key values are rotated on regular base, this method will provide
   /// cache refreshing mechanism for expired values
   ///
-  static Future<RSAPublicKey> getJWK(String kid) async {
+  static Future<RSAPublicKey> getJWK(String jwks, String kid) async {
     // TODO: [JWT-3] implement get JWK
     // Simulating get keys as json from the API
     Map<String, dynamic> keys = json.decode(
