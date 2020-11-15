@@ -48,6 +48,12 @@ abstract class JWKS implements JWK {
     return this._jwks;
   }
 
+  /// Get the List of JWKs
+  ///
+  getKeysAsList() {
+    return this._jwks.keys;
+  }
+
   /// Gat a single JWKey by its undex from the set
   ///
   JWK getKeyByIndex(int index);

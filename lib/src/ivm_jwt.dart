@@ -79,7 +79,9 @@ class IvmJWT extends JWT {
     //
     // Verify if the jwks is a valid JSON
     try {
-      validJWKS = await Utilities.validateSegmentToJSON(jwks);
+      final jv = JsonValidator(jwks);
+      validJWKS = jv.validate();
+      //validJWKS = await Utilities.validateSegmentToJSON(jwks);
     } catch (e) {
       throw Exception('Error validating header segment! $e.');
     }

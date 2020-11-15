@@ -37,3 +37,4 @@ part 'src/verifyJWT/ivm_check_signature.dart';
 part 'ivmjwt.g.dart';
 
 part 'src/utilities.dart';
+part 'src/jsonValidator/jvalid.dart';
