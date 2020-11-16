@@ -38,6 +38,8 @@ class JsonValidator {
     // define the function exit point
     if (_value.isEmpty) return false;
 
+    print('initial value: $_value');
+
     do {
       // cycling validation until the entire string is validated or
       // _value 'invalid' is sent.
@@ -46,6 +48,7 @@ class JsonValidator {
       // validate an object
       if (_value == 'invalid') {
         this._validity = false;
+        break;
       } else if (_value.isEmpty) {
         this._validity = true;
       }
@@ -73,7 +76,13 @@ class JsonValidator {
     // Remove the object's lead and closing chars or not
     // depending on the surounding chars
     if (['[]', '{}'].contains(spc)) {
-      tokens = value.substring(1, value.length - 1);
+      tokens = value.trim().substring(1, value.length - 1);
+
+      print('tokens to evaluate: $tokens');
+      // If the surounding chars are "[]" - get the list of the elements
+      if (spc == "[]") {
+        // TODO: analyse the array elements...
+      }
     } else {
       tokens = value.trim();
     }
@@ -105,7 +114,8 @@ class JsonValidator {
       '7',
       '8',
       '9',
-      '0'
+      '0',
+      '-'
     ];
 
     // Step-1
@@ -225,6 +235,77 @@ class JsonValidator {
       return result;
     }
 
+    /// Local function to handle ARRAYS as value from the token
+    ///
+    /// Arrays
+    /// An array structure is represented as square brackets surrounding zero
+    /// or more values (or elements).  Elements are separated by commas.
+    /// array = begin-array [ value *( value-separator value ) ] end-array
+    /// There is no requirement that the values in an array be of the same
+    /// type.
+    String _handleARRAYS({@required oBraket, @required cBraket}) {
+      // commaIndex will NOT work here due to existing commas within the array.
+      List<int> openingArrayIndexes = [];
+      List<int> closingArrayIndexes = [];
+      int tmpIndex = 0;
+      // Calc valid array's enclosures
+      print('-restValue: $restValue');
+
+      do {
+        tmpIndex = restValue.indexOf("$oBraket", tmpIndex);
+        openingArrayIndexes.add(tmpIndex);
+        if (tmpIndex != -1) tmpIndex++;
+        print('tmpIndex: $tmpIndex');
+      } while (tmpIndex != -1);
+
+      // Intermidiate reset
+      tmpIndex = 0;
+
+      do {
+        tmpIndex = restValue.indexOf("$cBraket", tmpIndex);
+        closingArrayIndexes.add(tmpIndex);
+        if (tmpIndex != -1) tmpIndex++;
+        print('tmpIndex: $tmpIndex');
+      } while (tmpIndex != -1);
+
+      print(
+          'opening: ${openingArrayIndexes.length}; closing: ${closingArrayIndexes.length}');
+
+      // Invalid enclosure case
+      if (openingArrayIndexes.length != closingArrayIndexes.length) {
+        return 'invalid';
+      }
+
+      // Redefining commaIndex for the comma located after the last closing tag
+      commaIndex = restValue.indexOf(
+          ',', closingArrayIndexes[closingArrayIndexes.length - 2]);
+
+      bool validatedObj = false;
+      if (commaIndex == -1) {
+        // the object is the last token...
+        print('value to send: $restValue');
+        validatedObj = _validateNameValuePair(restValue.trim());
+        print('validated result: $validatedObj');
+        if (validatedObj) {
+          return restValue;
+        } else {
+          return 'invalid';
+        }
+      } else {
+        // there is more tokens after the object
+        String obj = restValue.substring(0, commaIndex);
+        print('value to send: $obj');
+        validatedObj = _validateNameValuePair(obj.trim());
+        print('validated result: $validatedObj');
+        if (validatedObj) {
+          return obj;
+        } else {
+          return 'invalid';
+        }
+      }
+    }
+
+    /// Getting the lead char of the provided restValue
     String leadChar = restValue.substring(0, 1);
     if (leadChar.isEmpty) {
       leadChar = restValue.substring(0, 2);
@@ -235,8 +316,10 @@ class JsonValidator {
         result = _handleDQ();
         break;
       case '[':
+        result = _handleARRAYS(oBraket: '[', cBraket: ']');
         break;
       case '{':
+        result = _handleARRAYS(oBraket: '{', cBraket: '}');
         break;
       case 't':
         result = _handleTFN();
