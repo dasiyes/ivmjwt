@@ -63,21 +63,56 @@ class JsonValidator {
   /// This function esentialy validates the first token with key-value pair; If it is valid then the function returns is a string of the rest of the provided string (the first k-v pair removed) that needs to be validate.
   ///
   String _validateFirstKeyValuePair(String value) {
+    //Step-0
+    // <<<< ================ Prep & Analyses =============================>>>>
     bool _validPairName = false;
     bool _validPairValue = false;
     String tokens;
+    String firstPairName;
+    String firstPairValue;
+    String valueStartsWith;
     String spc = _getSuroundingChars(value.trim());
 
+    // Remove the object's lead and closing chars or not
+    // depending on the surounding chars
     if (['[]', '{}'].contains(spc)) {
-      // Remove the object's lead and closing chars
       tokens = value.substring(1, value.length - 1);
     } else {
       tokens = value.trim();
     }
 
-    // Getting first PairName string
-    final String firstPairName =
-        tokens.substring(0, tokens.indexOf(RegExp(r":(?!//)"))).trim();
+    // Identify the separators positions for the first k-v pair.
+    int colonIndex = tokens.indexOf(RegExp(r":(?!//)"));
+    int commaIndex = tokens.indexOf(',');
+
+    // Get the starting char for the value part of the pair.
+    valueStartsWith = tokens.substring(colonIndex + 1, colonIndex + 2).trim();
+    if (valueStartsWith.isEmpty) {
+      valueStartsWith = tokens.substring(colonIndex + 1, colonIndex + 3).trim();
+    }
+
+    // Define a list of chars that Value part of the pair can start with
+    final List<String> _possibleFC = [
+      '"',
+      '[',
+      '{',
+      'f',
+      't',
+      'n',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '0'
+    ];
+    // Step-1
+    // <<<<================= Getting first PairName string ================>>>>
+    firstPairName = tokens.substring(0, colonIndex).trim();
     print('... pairsName: $firstPairName');
 
     if (_getSuroundingChars(firstPairName) == '""') {
@@ -86,55 +121,44 @@ class JsonValidator {
       return 'invalid';
     }
 
-    // Getting first PairValue string
-    int colonIndex = tokens.indexOf(RegExp(r":(?!//)"));
-    int commaIndex = tokens.indexOf(',');
+    // Step-2
+    // <<<<================== Getting first PairValue string ==============>>>>
 
-    String valueStartsWith;
-
-    valueStartsWith = tokens.substring(colonIndex + 1, colonIndex + 2).trim();
-
-    if (valueStartsWith.isEmpty) {
-      valueStartsWith = tokens.substring(colonIndex + 1, colonIndex + 3).trim();
+    // Extract the Value part from the key-value token;
+    if (_possibleFC.contains(valueStartsWith)) {
+      firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
+    } else {
+      return 'invalid';
     }
 
-    String firstPairValue;
-
-    if (['[', '{', 'f', 't', 'n'].contains(valueStartsWith)) {
-      // Get the array or object of the value
-      firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
-      if (firstPairValue.isNotEmpty || firstPairValue == 'all-valid') {
-        _validPairValue = true;
-      } else {
-        return 'invalid';
-      }
-    } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-        .contains(valueStartsWith)) {
-      firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
-      if (firstPairValue.isNotEmpty || firstPairValue == 'all-valid') {
-        _validPairValue = true;
-      } else {
-        return 'invalid';
-      }
+    // Check the extracted firstPairValue for success.
+    if (firstPairValue.isEmpty || firstPairValue == 'invalid') {
+      return 'invalid';
     } else {
-      if (commaIndex == -1) {
-        firstPairValue = tokens.substring(colonIndex + 1);
-      } else {
-        firstPairValue = tokens.substring(colonIndex + 1, commaIndex);
-      }
-      if (_getSuroundingChars(firstPairValue) == '""') {
-        _validPairValue = true;
-      } else {
-        return 'invalid';
-      }
+      _validPairValue = true;
     }
 
     print('.... pairsValue: $firstPairValue');
     print('cmIdx: $commaIndex');
     print('_validPairValue: $_validPairValue');
 
+    String retValue;
+    // Step-3
+    // <<<<==================== Composing the return result ===============>>>>
+    /// * Note: if the first token (k-v pair) was successfully verified, then
+    /// * the composing part below should CUT the first token and return as
+    /// * result the rest of the provided string [value].
+    /// * If this token has been the last pair in the object AND it has been
+    /// * successfully verified - the returned result is EMPTY string.
+    ///
     if (_validPairName && _validPairValue && commaIndex != -1) {
-      final String retValue = '{${tokens.substring(commaIndex + 1)}}';
+      if (['[]', '{}'].contains(spc)) {
+        retValue =
+            '${spc.substring(0, 1)}${tokens.substring(commaIndex + 1)}${spc.substring(1)}';
+      } else {
+        retValue = '{${tokens.substring(commaIndex + 1)}}';
+      }
+
       print('return: $retValue');
       return retValue;
     } else if (_validPairName && _validPairValue && commaIndex == -1) {
@@ -157,18 +181,19 @@ class JsonValidator {
     int commaIndex = restValue.indexOf(',');
 
     /// Local function to verify for numbers
+    ///
     String _isNum() {
-      if (commaIndex != -1) {
+      if (commaIndex == -1) {
         try {
-          return num.parse(restValue.substring(0, commaIndex)).toString();
+          num.parse(restValue).toString();
+          return restValue;
         } catch (e) {
           print('Exception while parsing to number: $e');
-          return '';
+          return 'invalid';
         }
       } else {
         try {
-          num.parse(restValue).toString();
-          return 'all-valid';
+          return num.parse(restValue.substring(0, commaIndex)).toString();
         } catch (e) {
           print('Exception while parsing to number: $e');
           return 'invalid';
@@ -176,19 +201,49 @@ class JsonValidator {
       }
     }
 
-    /// Local function to handle Tru, False and Null values
+    /// Local function to handle True, False and Null values
+    ///
     String _handleTFN() {
-      if (commaIndex != -1) {
-        result = restValue.substring(0, commaIndex);
+      if (commaIndex == -1) {
+        result = restValue;
       } else {
-        result = 'all-valid';
+        result = restValue.substring(0, commaIndex);
       }
       return result;
     }
 
-    print(restValue);
-    final String leadChar = restValue.substring(0, 1);
+    /// Local function to handle values with suroundings chars
+    ///
+    String _handleDQ() {
+      // This is the last token - no comma till the end of the string;
+      if (commaIndex == -1) {
+        // Check for proper surounding double quotes
+        if (_getSuroundingChars(restValue) == '""') {
+          result = restValue;
+        } else {
+          return 'invalid';
+        }
+      } else {
+        String _extVal = restValue.substring(0, commaIndex);
+        if (_getSuroundingChars(_extVal) == '""') {
+          result = _extVal;
+        } else {
+          return 'invalid';
+        }
+      }
+      return result;
+    }
+
+    print('the rest value >>>> $restValue');
+    String leadChar = restValue.substring(0, 1);
+    if (leadChar.isEmpty) {
+      leadChar = restValue.substring(0, 2);
+    }
+
     switch (leadChar) {
+      case '"':
+        result = _handleDQ();
+        break;
       case '[':
         break;
       case '{':
