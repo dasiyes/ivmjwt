@@ -35,22 +35,27 @@ class JsonValidator {
   bool _validateNameValuePair(String value) {
     String _value = value.trim();
 
+    print(
+        'starting with value: =================================================$_value');
+
     // define the function exit point
-    if (_value.isEmpty) return _validity;
+    if (_value.isEmpty) return false;
 
     do {
-      // validate an object
-      if (_value == 'invalid') {
-        _validity = false;
-      } else {
-        _validity == true;
-      }
       // cycling validation until the entire string is validated or
       // _value 'invalid' is sent.
       _value = _validateFirstKeyValuePair(_value);
+
+      // validate an object
+      if (_value == 'invalid') {
+        this._validity = false;
+      } else if (_value.isEmpty) {
+        print('\n\n\n set validity to true\n\n\n');
+        this._validity = true;
+      }
     } while (_value.isNotEmpty);
 
-    return _validity;
+    return this._validity;
   }
 
   /// Validate Key-Value Pair
@@ -98,7 +103,7 @@ class JsonValidator {
     if (['[', '{', 'f', 't', 'n'].contains(valueStartsWith)) {
       // Get the array or object of the value
       firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
-      if (firstPairValue.isNotEmpty) {
+      if (firstPairValue.isNotEmpty || firstPairValue == 'all-valid') {
         _validPairValue = true;
       } else {
         return 'invalid';
@@ -106,7 +111,7 @@ class JsonValidator {
     } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
         .contains(valueStartsWith)) {
       firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
-      if (firstPairValue.isNotEmpty || firstPairValue != 'invalid') {
+      if (firstPairValue.isNotEmpty || firstPairValue == 'all-valid') {
         _validPairValue = true;
       } else {
         return 'invalid';
@@ -158,11 +163,12 @@ class JsonValidator {
           return num.parse(restValue.substring(0, commaIndex)).toString();
         } catch (e) {
           print('Exception while parsing to number: $e');
-          return 'invalid';
+          return '';
         }
       } else {
         try {
-          return num.parse(restValue).toString();
+          num.parse(restValue).toString();
+          return 'all-valid';
         } catch (e) {
           print('Exception while parsing to number: $e');
           return 'invalid';
@@ -175,7 +181,7 @@ class JsonValidator {
       if (commaIndex != -1) {
         result = restValue.substring(0, commaIndex);
       } else {
-        result = restValue;
+        result = 'all-valid';
       }
       return result;
     }

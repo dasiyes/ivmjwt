@@ -83,7 +83,7 @@ class IvmJWT extends JWT {
       validJWKS = jv.validate();
       //validJWKS = await Utilities.validateSegmentToJSON(jwks);
     } catch (e) {
-      throw Exception('Error validating header segment! $e.');
+      throw Exception('Error validating to json the provided JWKs value! $e.');
     }
 
     // Signature verification result prep
