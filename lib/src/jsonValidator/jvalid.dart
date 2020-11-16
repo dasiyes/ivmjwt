@@ -35,9 +35,6 @@ class JsonValidator {
   bool _validateNameValuePair(String value) {
     String _value = value.trim();
 
-    print(
-        'starting with value: =================================================$_value');
-
     // define the function exit point
     if (_value.isEmpty) return false;
 
@@ -50,7 +47,6 @@ class JsonValidator {
       if (_value == 'invalid') {
         this._validity = false;
       } else if (_value.isEmpty) {
-        print('\n\n\n set validity to true\n\n\n');
         this._validity = true;
       }
     } while (_value.isNotEmpty);
@@ -71,6 +67,7 @@ class JsonValidator {
     String firstPairName;
     String firstPairValue;
     String valueStartsWith;
+    String retValue;
     String spc = _getSuroundingChars(value.trim());
 
     // Remove the object's lead and closing chars or not
@@ -110,10 +107,10 @@ class JsonValidator {
       '9',
       '0'
     ];
+
     // Step-1
     // <<<<================= Getting first PairName string ================>>>>
     firstPairName = tokens.substring(0, colonIndex).trim();
-    print('... pairsName: $firstPairName');
 
     if (_getSuroundingChars(firstPairName) == '""') {
       _validPairName = true;
@@ -138,13 +135,9 @@ class JsonValidator {
       _validPairValue = true;
     }
 
-    print('.... pairsValue: $firstPairValue');
-    print('cmIdx: $commaIndex');
-    print('_validPairValue: $_validPairValue');
-
-    String retValue;
     // Step-3
     // <<<<==================== Composing the return result ===============>>>>
+
     /// * Note: if the first token (k-v pair) was successfully verified, then
     /// * the composing part below should CUT the first token and return as
     /// * result the rest of the provided string [value].
@@ -158,8 +151,6 @@ class JsonValidator {
       } else {
         retValue = '{${tokens.substring(commaIndex + 1)}}';
       }
-
-      print('return: $retValue');
       return retValue;
     } else if (_validPairName && _validPairValue && commaIndex == -1) {
       return '';
@@ -234,7 +225,6 @@ class JsonValidator {
       return result;
     }
 
-    print('the rest value >>>> $restValue');
     String leadChar = restValue.substring(0, 1);
     if (leadChar.isEmpty) {
       leadChar = restValue.substring(0, 2);
