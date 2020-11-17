@@ -66,6 +66,7 @@ class JsonValidator {
     // <<<< ================ Prep & Analyses =============================>>>>
     bool _validPairName = false;
     bool _validPairValue = false;
+    bool _isAnArray = false;
     String tokens;
     String firstPairName;
     String firstPairValue;
@@ -75,14 +76,15 @@ class JsonValidator {
 
     // Remove the object's lead and closing chars or not
     // depending on the surounding chars
-    if (['[]', '{}'].contains(spc)) {
-      tokens = value.trim().substring(1, value.length - 1);
+    if (spc == '[]') {
+      tokens = _getValueObject(value);
+      print('[_getValueObject result]: tokens to evaluate: $tokens');
+    }
 
-      print('tokens to evaluate: $tokens');
-      // If the surounding chars are "[]" - get the list of the elements
-      if (spc == "[]") {
-        // TODO: analyse the array elements...
-      }
+    // IMPORTANT!!! Do not join with the upper IF statement!!!
+    if (spc == '{}') {
+      tokens = value.trim().substring(1, value.length - 1);
+      print('[_validateFirstKeyValuePair {}]: tokens to evaluate: $tokens');
     } else {
       tokens = value.trim();
     }
@@ -133,13 +135,21 @@ class JsonValidator {
 
     // Extract the Value part from the key-value token;
     if (_possibleFC.contains(valueStartsWith)) {
+      print(
+          'firstPairName: $firstPairName, _getValueObject param: ${tokens.substring(colonIndex + 1).trim()}');
       firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
+
+      // If the value part starts with '[' the value may be a valid ARRAY and the commaIndex needs to be redefined
+      if (valueStartsWith == '[') {
+        _isAnArray = true;
+      }
+      print('firstPairValue: $firstPairValue');
     } else {
       return 'invalid';
     }
 
     // Check the extracted firstPairValue for success.
-    if (firstPairValue.isEmpty || firstPairValue == 'invalid') {
+    if (firstPairValue == 'invalid') {
       return 'invalid';
     } else {
       _validPairValue = true;
@@ -154,13 +164,22 @@ class JsonValidator {
     /// * If this token has been the last pair in the object AND it has been
     /// * successfully verified - the returned result is EMPTY string.
     ///
-    if (_validPairName && _validPairValue && commaIndex != -1) {
-      if (['[]', '{}'].contains(spc)) {
-        retValue =
-            '${spc.substring(0, 1)}${tokens.substring(commaIndex + 1)}${spc.substring(1)}';
-      } else {
+    if (_validPairName && _validPairValue && !_isAnArray && commaIndex != -1) {
+      if (spc == '{}') {
         retValue = '{${tokens.substring(commaIndex + 1)}}';
+      } else if (spc == '[]') {
+        print('[ret value from [] ] - ${tokens.substring(commaIndex + 1)}');
+        print('retValue: $retValue');
       }
+      print('step-3 compose retValue: $retValue');
+      return retValue;
+    } else if (_validPairName && _validPairValue && _isAnArray) {
+      if (firstPairValue.isEmpty) {
+        retValue = '';
+      } else {
+        retValue = '{$firstPairValue}';
+      }
+      print('retValue: $retValue');
       return retValue;
     } else if (_validPairName && _validPairValue && commaIndex == -1) {
       return '';
@@ -181,69 +200,12 @@ class JsonValidator {
     String result;
     int commaIndex = restValue.indexOf(',');
 
-    /// Local function to verify for numbers
-    ///
-    String _isNum() {
-      if (commaIndex == -1) {
-        try {
-          num.parse(restValue).toString();
-          return restValue;
-        } catch (e) {
-          print('Exception while parsing to number: $e');
-          return 'invalid';
-        }
-      } else {
-        try {
-          return num.parse(restValue.substring(0, commaIndex)).toString();
-        } catch (e) {
-          print('Exception while parsing to number: $e');
-          return 'invalid';
-        }
-      }
-    }
+    // <<<<================== Local functions =======================>>>>
 
-    /// Local function to handle True, False and Null values
+    /// Calculate enclosures
     ///
-    String _handleTFN() {
-      if (commaIndex == -1) {
-        result = restValue;
-      } else {
-        result = restValue.substring(0, commaIndex);
-      }
-      return result;
-    }
-
-    /// Local function to handle values with suroundings chars
-    ///
-    String _handleDQ() {
-      // This is the last token - no comma till the end of the string;
-      if (commaIndex == -1) {
-        // Check for proper surounding double quotes
-        if (_getSuroundingChars(restValue) == '""') {
-          result = restValue;
-        } else {
-          return 'invalid';
-        }
-      } else {
-        String _extVal = restValue.substring(0, commaIndex);
-        if (_getSuroundingChars(_extVal) == '""') {
-          result = _extVal;
-        } else {
-          return 'invalid';
-        }
-      }
-      return result;
-    }
-
-    /// Local function to handle ARRAYS as value from the token
-    ///
-    /// Arrays
-    /// An array structure is represented as square brackets surrounding zero
-    /// or more values (or elements).  Elements are separated by commas.
-    /// array = begin-array [ value *( value-separator value ) ] end-array
-    /// There is no requirement that the values in an array be of the same
-    /// type.
-    String _handleARRAYS({@required oBraket, @required cBraket}) {
+    Map<String, List<int>> _calculateEnclosures(
+        {@required oBraket, @required cBraket}) {
       // commaIndex will NOT work here due to existing commas within the array.
       List<int> openingArrayIndexes = [];
       List<int> closingArrayIndexes = [];
@@ -268,58 +230,217 @@ class JsonValidator {
         print('tmpIndex: $tmpIndex');
       } while (tmpIndex != -1);
 
+      return {"oil": openingArrayIndexes, "cil": closingArrayIndexes};
+    }
+
+    /// Validate single ARRAY
+    ///
+    String _validateSingleArray(int openBraketIndex, int closingBraketIndex) {
+      //TODO: re-work the entire parsing logic below.
+      List array = restValue
+          .substring(openBraketIndex + 1, closingBraketIndex)
+          .trim()
+          .split(',');
+      int i = 0;
+      String retval = '';
+      String evaString = '';
+
       print(
-          'opening: ${openingArrayIndexes.length}; closing: ${closingArrayIndexes.length}');
+          'the array extracted: ${restValue.substring(openBraketIndex + 1, closingBraketIndex)}');
 
-      // Invalid enclosure case
-      if (openingArrayIndexes.length != closingArrayIndexes.length) {
-        return 'invalid';
+      do {
+        print('value to validate: ${array[i]}');
+        if (array[i].toString().trim().isEmpty) {
+          retval = 'invalid';
+          break;
+        }
+        if (array[i].toString().trim().startsWith('{') ||
+            array[i].toString().trim().startsWith('[')) {
+          // Rmove leading braket
+          evaString = array[i].toString().substring(1);
+        } else if (array[i].toString().trim().endsWith('}') ||
+            array[i].toString().trim().endsWith(']')) {
+          evaString =
+              array[i].toString().substring(0, array[i].toString().length - 1);
+        }
+        print('transformed value to validate: ${evaString}');
+
+        retval = _getValueObject(evaString);
+        print('retval: $retval');
+        if (retval == 'invalid') {
+          break;
+        }
+        i++;
+      } while (i < array.length);
+
+      // On exit of the cycle do check the value to return
+      if (retval == 'invalid') {
+        return retval;
+      } else {
+        return restValue;
       }
+    }
 
-      // Redefining commaIndex for the comma located after the last closing tag
-      commaIndex = restValue.indexOf(
-          ',', closingArrayIndexes[closingArrayIndexes.length - 2]);
-
-      bool validatedObj = false;
+    /// verify for numbers
+    ///
+    String _isNum() {
       if (commaIndex == -1) {
-        // the object is the last token...
-        print('value to send: $restValue');
-        validatedObj = _validateNameValuePair(restValue.trim());
-        print('validated result: $validatedObj');
-        if (validatedObj) {
+        try {
+          num.parse(restValue).toString();
           return restValue;
+        } catch (e) {
+          print('Exception while parsing to number: $e');
+          return 'invalid';
+        }
+      } else {
+        try {
+          return num.parse(restValue.substring(0, commaIndex)).toString();
+        } catch (e) {
+          print('Exception while parsing to number: $e');
+          return 'invalid';
+        }
+      }
+    }
+
+    /// handle True, False and Null values
+    ///
+    String _handleTFN() {
+      if (commaIndex == -1) {
+        result = restValue;
+      } else {
+        result = restValue.substring(0, commaIndex);
+      }
+      return result;
+    }
+
+    /// handle values with suroundings double quotes
+    ///
+    String _handleDQ() {
+      // This is the last token - no comma till the end of the string;
+      if (commaIndex == -1) {
+        // Check for proper surounding double quotes
+        if (_getSuroundingChars(restValue.trim()) == '""') {
+          result = restValue;
         } else {
           return 'invalid';
         }
       } else {
-        // there is more tokens after the object
-        String obj = restValue.substring(0, commaIndex);
-        print('value to send: $obj');
-        validatedObj = _validateNameValuePair(obj.trim());
-        print('validated result: $validatedObj');
-        if (validatedObj) {
-          return obj;
+        String _extVal = restValue.trim().substring(0, commaIndex);
+        if (_getSuroundingChars(_extVal) == '""') {
+          result = _extVal;
         } else {
           return 'invalid';
         }
       }
+      return result;
     }
+
+    /// handle ARRAYS / OBJECTS as value from the token
+    ///
+    /// Objects
+    ///
+    /// An object structure is represented as a pair of curly brackets
+    /// surrounding zero or more name/value pairs (or members).  A name is a
+    /// string.  A single colon comes after each name, separating the name
+    /// from the value.  A single comma separates a value from a following
+    /// name.  The names within an object SHOULD be unique.
+    ///
+    ///  object = begin-object [ member *( value-separator member ) ]
+    ///           end-object
+    ///  member = string name-separator value
+    ///
+    /// Arrays
+    /// An array structure is represented as square brackets surrounding zero
+    /// or more values (or elements).  Elements are separated by commas.
+    ///
+    ///  array = begin-array [ value *( value-separator value ) ] end-array
+    ///
+    /// There is no requirement that the values in an array be of the same
+    /// type.
+    String _handleNested({@required oBraket, @required cBraket}) {
+      bool validatedObj = false;
+
+      // Calculate enclosures
+      Map<String, List<int>> _indexesMap =
+          _calculateEnclosures(oBraket: oBraket, cBraket: cBraket);
+      List<int> openningIndexes = _indexesMap['oil'];
+      List<int> closingIndexes = _indexesMap['cil'];
+
+      print(
+          'opening: ${openningIndexes.length}; closing: ${closingIndexes.length}');
+
+      // Invalid (asymetric) enclosure case
+      if (openningIndexes.length != closingIndexes.length) {
+        return 'invalid';
+      }
+
+      // Redefining commaIndex for the comma located after the last closing tag
+      commaIndex =
+          restValue.indexOf(',', closingIndexes[closingIndexes.length - 2]);
+
+      // Validate a single array object
+      if ('$oBraket$cBraket' == '[]') {
+        int enclosureLevels = openningIndexes.length - 1;
+        String rsl;
+        rsl = _validateSingleArray(
+            openningIndexes[0], closingIndexes[enclosureLevels - 1]);
+
+        print('validate single Array result: $rsl');
+        if (rsl == 'invalid') return rsl;
+
+        if (commaIndex == -1) {
+          // Successfully verified single array
+          return '';
+        } else {
+          String obj = restValue.substring(commaIndex + 1).trim();
+          print('[_validateSingleArray] NOT Last token rest value: $obj');
+          return obj;
+        }
+      } else if ('$oBraket$cBraket' == '{}') {
+        if (commaIndex == -1) {
+          validatedObj = _validateNameValuePair(restValue.trim());
+          print(
+              'validating restValue: $restValue | validated result: $validatedObj');
+          if (validatedObj) {
+            return restValue;
+          } else {
+            return 'invalid';
+          }
+          // Not the last token in the string
+        } else {
+          // there is more tokens after the object
+          String obj = restValue.substring(0, commaIndex);
+          print('value to send: $obj');
+          validatedObj = _validateNameValuePair(obj.trim());
+          print(
+              'validating restValue: $restValue | validated result: $validatedObj');
+          if (validatedObj) {
+            return obj;
+          } else {
+            return 'invalid';
+          }
+        }
+      } else {
+        return 'invalid';
+      }
+
+      // Validate json (map-{}) object
+    }
+    // <<<<================================================================>>>>
 
     /// Getting the lead char of the provided restValue
-    String leadChar = restValue.substring(0, 1);
-    if (leadChar.isEmpty) {
-      leadChar = restValue.substring(0, 2);
-    }
-
+    String leadChar = restValue.trim().substring(0, 1);
     switch (leadChar) {
       case '"':
         result = _handleDQ();
         break;
       case '[':
-        result = _handleARRAYS(oBraket: '[', cBraket: ']');
+        result = _handleNested(oBraket: '[', cBraket: ']');
+        print('[_handleNested-[] ] $result');
         break;
       case '{':
-        result = _handleARRAYS(oBraket: '{', cBraket: '}');
+        result = _handleNested(oBraket: '{', cBraket: '}');
+        print('[_handleNested-{} ] $result');
         break;
       case 't':
         result = _handleTFN();
@@ -331,6 +452,10 @@ class JsonValidator {
         result = _handleTFN();
         break;
       default:
+        if (leadChar.isEmpty || leadChar == ',') {
+          result = 'invalid';
+          break;
+        }
         result = _isNum();
         break;
     }
