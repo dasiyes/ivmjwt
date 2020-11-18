@@ -214,28 +214,126 @@ class JsonValidator {
       // commaIndex will NOT work here due to existing commas within the array.
       List<int> openingArrayIndexes = [];
       List<int> closingArrayIndexes = [];
-      int tmpIndex = 0;
       // Calc valid array's enclosures
       print('[_calculateEnclosures] -restValue: $restValue');
 
-      do {
-        tmpIndex = restValue.indexOf("$oBraket", tmpIndex);
-        openingArrayIndexes.add(tmpIndex);
-        print('[_calculateEnclosures] added Index: $tmpIndex');
-        if (tmpIndex != -1) tmpIndex++;
-      } while (tmpIndex != -1);
-
-      // Intermidiate reset
-      tmpIndex = 0;
+      String char;
+      int dq = 0;
+      int i = 0;
 
       do {
-        tmpIndex = restValue.indexOf("$cBraket", tmpIndex);
-        closingArrayIndexes.add(tmpIndex);
-        print('[_calculateEnclosures] added Index: $tmpIndex');
-        if (tmpIndex != -1) tmpIndex++;
-      } while (tmpIndex != -1);
+        char = restValue[i];
+        if (char == '"' && dq == 0) {
+          dq++;
+        } else if (char == '"' && dq == 1) {
+          dq--;
+        }
+        if (char == oBraket && dq == 0) openingArrayIndexes.add(i);
+        if (char == cBraket && dq == 0) closingArrayIndexes.add(i);
+        i++;
+      } while (i < restValue.length);
 
       return {"oil": openingArrayIndexes, "cil": closingArrayIndexes};
+    }
+
+    /// Parsing array from the begining of the restValue string
+    /// This function assumes the string to be parsed BEGINS with
+    /// [bracketType] either one of '[' or '{'
+    String _parseEnclosure(String bracketType, [String toBeParsed]) {
+      String tmpHolder;
+      String openBracket;
+      String closeBracket;
+
+      if (bracketType == '[') {
+        openBracket = '[';
+        closeBracket = ']';
+      } else if (bracketType == '{') {
+        openBracket = '{';
+        closeBracket = '}';
+      } else {
+        return 'invalid';
+      }
+
+      print(
+          '[_parseEnclosure] param?: $bracketType, $openBracket $closeBracket');
+
+      if (toBeParsed == null) {
+        tmpHolder = restValue;
+      } else {
+        tmpHolder = toBeParsed;
+      }
+
+      print('[_parseEnclosure] tmpHolder: $tmpHolder');
+
+      // Calculate currly brakets enclosures
+      Map<String, List<int>> _cbIndexMap =
+          _calculateEnclosures(oBraket: '{', cBraket: '}');
+      List<int> cbOpenningIndexes = _cbIndexMap['oil'];
+      List<int> cbClosingIndexes = _cbIndexMap['cil'];
+
+      // Calculate square brakets enclosures
+      Map<String, List<int>> _sbIndexMap =
+          _calculateEnclosures(oBraket: '[', cBraket: ']');
+      List<int> sbOpenningIndexes = _sbIndexMap['oil'];
+      List<int> sbClosingIndexes = _sbIndexMap['cil'];
+
+      // Check for correct enclosure
+      print('[_parseEnclosure] =[= indexes: $sbOpenningIndexes');
+      print('[_parseEnclosure] =]= indexes: $sbClosingIndexes');
+      print('[_parseEnclosure] ={= indexes: $cbOpenningIndexes');
+      print('[_parseEnclosure] =}= indexes: $cbClosingIndexes');
+      if (sbOpenningIndexes.length != sbClosingIndexes.length ||
+          cbOpenningIndexes.length != cbClosingIndexes.length) {
+        return 'invalid';
+      }
+
+      // Get the entire array string (find the closing bracket)
+      int b = 1;
+      String char = '';
+      int closingBracketIndex;
+      while (b != 0) {
+        // [i] starts from 1 ASSUMING the char at position 0 is already the
+        // opening bracket ( '[' or '{') thus b=1
+        for (var i = 1; i < tmpHolder.length; i++) {
+          char = tmpHolder[i];
+          if (char == '$openBracket') {
+            b++;
+          } else if (char == '$closeBracket') {
+            b--;
+            if (b == 0) {
+              closingBracketIndex = i;
+              break;
+            }
+          }
+        }
+        // Force the b to ZERO
+        if (b != 0) {
+          closingBracketIndex = -1;
+          b = 0;
+        }
+      }
+
+      print('[_parseEnclosure] closingBracketIndex: $closingBracketIndex');
+
+      if (closingBracketIndex > 0 &&
+          (tmpHolder.length - 1 >= closingBracketIndex)) {
+        String result = tmpHolder.substring(0, closingBracketIndex + 1);
+        print('[_parseEnclosure] The parsed result: $result');
+        return result;
+      } else {
+        return 'invalid';
+      }
+    }
+
+    /// Validate an Object previously parsed
+    ///
+    bool _validateObject(String parsedObject) {
+      bool validity = false;
+
+      validity = this.validate(parsedObject);
+      print('internal loop for nested json validate - result: $validity');
+
+      return validity;
     }
 
     /// Validate an ARRAY previously parsed
@@ -247,6 +345,59 @@ class JsonValidator {
       int commaIndex = -1;
 
       print('[_validateArray] body to verify: $arrayBody');
+
+      String firstChar = arrayBody.substring(0, 1);
+
+      if (firstChar == '{' || firstChar == '[') {
+        do {
+          String nestedElement = _parseEnclosure('$firstChar', arrayBody);
+
+          if (firstChar == '{') {
+            bool validityNestedElement = validate(nestedElement);
+            print(
+                '[_validateArray] validityNestedElement: $validityNestedElement');
+
+            if (validityNestedElement) {
+              print(
+                  '[_validateArray] \n arrayBody.length: ${arrayBody.trim().length},>? \n nestedElement.trim().length: ${nestedElement.trim().length} \n arrayBody: $arrayBody \n nestedElement: $nestedElement');
+              if (arrayBody.trim().length == nestedElement.trim().length + 1) {
+                arrayBody = '';
+                print('[_validateArray] arrayBody: $arrayBody');
+              } else if (arrayBody.length > nestedElement.length + 1) {
+                // cutting the first (verified) element
+                arrayBody = arrayBody.substring(nestedElement.length).trim();
+                firstChar = arrayBody.substring(0, 1);
+                print('[_validateArray] arrayBody: $arrayBody');
+              } else {
+                validity = true;
+              }
+            } else {
+              validity = false;
+              break;
+            }
+          } else if (firstChar == '[') {
+            if (_validateArray(nestedElement)) {
+              if (arrayBody.length > nestedElement.length) {
+                // objElement.length + 2 will include the following comma if exists
+                arrayBody = arrayBody.substring(nestedElement.length).trim();
+                firstChar = arrayBody.substring(0, 1);
+                print('[_validateArray] arrayBody: $arrayBody');
+              } else if (arrayBody.trim().length == nestedElement.length) {
+                arrayBody = '';
+                print('[_validateArray] arrayBody: $arrayBody');
+              } else {
+                validity = true;
+              }
+            } else {
+              validity = false;
+              break;
+            }
+          }
+        } while (arrayBody.startsWith('{') || arrayBody.startsWith('['));
+
+        print('[_validateArray] arrayBody: $arrayBody');
+        if (arrayBody.isEmpty) return validity;
+      }
 
       do {
         String arrayElement;
@@ -270,7 +421,19 @@ class JsonValidator {
           print('array nesting');
         } else if (arrayElement.contains('{')) {
           //parse nested object
-          print('object nesting');
+          if (arrayElement.startsWith('{')) {
+            if (_validateObject(arrayElement)) {
+              retval = 'valid_object';
+            } else {
+              validity = false;
+              break;
+            }
+          } else if (arrayElement.startsWith('"') &&
+              arrayElement.endsWith('"')) {
+            // there is no nesting - verify the element
+            retval = _getValueObject(arrayElement);
+            print('[_validateArray] from _getValueObject retval: $retval');
+          }
         } else {
           // there is no nesting - verify the element
           retval = _getValueObject(arrayElement);
@@ -291,17 +454,6 @@ class JsonValidator {
       } while (commaIndex != -1);
 
       // Return the final validation result
-      return validity;
-    }
-
-    /// Validate an Object previously parsed
-    ///
-    bool _validateObject(String parsedObject) {
-      bool validity = false;
-
-      validity = this.validate(parsedObject);
-      print('internal loop for nested json validate - result: $validity');
-
       return validity;
     }
 
@@ -357,91 +509,6 @@ class JsonValidator {
         }
       }
       return result;
-    }
-
-    /// Parsing array from the begining of the restValue string
-    /// This function assumes the string to be parsed BEGINS with
-    /// [bracketType] either one of '[' or '{'
-    String _parseEnclosure(String bracketType, [String toBeParsed]) {
-      String tmpHolder;
-      String openBracket;
-      String closeBracket;
-
-      if (bracketType == '[') {
-        openBracket = '[';
-        closeBracket = ']';
-      } else if (bracketType == '{') {
-        openBracket = '{';
-        closeBracket = '}';
-      } else {
-        return 'invalid';
-      }
-
-      print(
-          '[_parseEnclosure] param?: $bracketType, $openBracket $closeBracket');
-
-      if (toBeParsed == null) {
-        tmpHolder = restValue;
-      } else {
-        tmpHolder = toBeParsed;
-      }
-
-      print('[_parseEnclosure] tmpHolder: $tmpHolder');
-
-      // Calculate currly brakets enclosures
-      Map<String, List<int>> _cbIndexMap =
-          _calculateEnclosures(oBraket: '{', cBraket: '}');
-      List<int> cbOpenningIndexes = _cbIndexMap['oil'];
-      List<int> cbClosingIndexes = _cbIndexMap['cil'];
-
-      // Calculate square brakets enclosures
-      Map<String, List<int>> _sbIndexMap =
-          _calculateEnclosures(oBraket: '[', cBraket: ']');
-      List<int> sbOpenningIndexes = _sbIndexMap['oil'];
-      List<int> sbClosingIndexes = _sbIndexMap['cil'];
-
-      // Check for correct enclosure
-      if (sbOpenningIndexes.length != sbClosingIndexes.length ||
-          cbOpenningIndexes.length != cbClosingIndexes.length) {
-        return 'invalid';
-      }
-
-      // Get the entire array string (find the closing bracket)
-      int b = 1;
-      String char = '';
-      int closingBracketIndex;
-      while (b != 0) {
-        // [i] starts from 1 ASSUMING the char at position 0 is already the
-        // opening bracket ( '[' or '{') thus b=1
-        for (var i = 1; i < tmpHolder.length; i++) {
-          char = tmpHolder[i];
-          if (char == '$openBracket') {
-            b++;
-          } else if (char == '$closeBracket') {
-            b--;
-            if (b == 0) {
-              closingBracketIndex = i;
-              break;
-            }
-          }
-        }
-        // Force the b to ZERO
-        if (b != 0) {
-          closingBracketIndex = -1;
-          b = 0;
-        }
-      }
-
-      print('[_parseEnclosure] closingBracketIndex: $closingBracketIndex');
-
-      if (closingBracketIndex > 0 &&
-          (tmpHolder.length - 1 >= closingBracketIndex)) {
-        String result = tmpHolder.substring(0, closingBracketIndex + 1);
-        print('[_parseEnclosure] The parsed result: $result');
-        return result;
-      } else {
-        return 'invalid';
-      }
     }
 
     /// handle ARRAYS / OBJECTS as value from the token
@@ -513,6 +580,7 @@ class JsonValidator {
     // <<<<================================================================>>>>
 
     /// Getting the lead char of the provided restValue
+    if (restValue.isEmpty) return '';
     String leadChar = restValue.trim().substring(0, 1);
     switch (leadChar) {
       case '"':
