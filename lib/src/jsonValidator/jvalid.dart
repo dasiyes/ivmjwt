@@ -13,7 +13,12 @@ class JsonValidator {
 
   JsonValidator(String this.json);
 
-  bool validate() {
+  bool validate([String nestedJson]) {
+    if (nestedJson == null) {
+      json = this.json;
+    } else {
+      json = nestedJson;
+    }
     // An empty string is not a valid json object
     if (json.isEmpty) return false;
 
@@ -211,13 +216,13 @@ class JsonValidator {
       List<int> closingArrayIndexes = [];
       int tmpIndex = 0;
       // Calc valid array's enclosures
-      print('-restValue: $restValue');
+      print('[_calculateEnclosures] -restValue: $restValue');
 
       do {
         tmpIndex = restValue.indexOf("$oBraket", tmpIndex);
         openingArrayIndexes.add(tmpIndex);
+        print('[_calculateEnclosures] added Index: $tmpIndex');
         if (tmpIndex != -1) tmpIndex++;
-        print('tmpIndex: $tmpIndex');
       } while (tmpIndex != -1);
 
       // Intermidiate reset
@@ -226,59 +231,78 @@ class JsonValidator {
       do {
         tmpIndex = restValue.indexOf("$cBraket", tmpIndex);
         closingArrayIndexes.add(tmpIndex);
+        print('[_calculateEnclosures] added Index: $tmpIndex');
         if (tmpIndex != -1) tmpIndex++;
-        print('tmpIndex: $tmpIndex');
       } while (tmpIndex != -1);
 
       return {"oil": openingArrayIndexes, "cil": closingArrayIndexes};
     }
 
-    /// Validate single ARRAY
+    /// Validate an ARRAY previously parsed
     ///
-    String _validateSingleArray(int openBraketIndex, int closingBraketIndex) {
-      //TODO: re-work the entire parsing logic below.
-      List array = restValue
-          .substring(openBraketIndex + 1, closingBraketIndex)
-          .trim()
-          .split(',');
-      int i = 0;
-      String retval = '';
-      String evaString = '';
+    bool _validateArray(String parsedArray) {
+      bool validity = false;
+      String retval;
+      String arrayBody = parsedArray.substring(1, parsedArray.length - 1);
+      int commaIndex = -1;
 
-      print(
-          'the array extracted: ${restValue.substring(openBraketIndex + 1, closingBraketIndex)}');
+      print('[_validateArray] body to verify: $arrayBody');
 
       do {
-        print('value to validate: ${array[i]}');
-        if (array[i].toString().trim().isEmpty) {
-          retval = 'invalid';
-          break;
-        }
-        if (array[i].toString().trim().startsWith('{') ||
-            array[i].toString().trim().startsWith('[')) {
-          // Rmove leading braket
-          evaString = array[i].toString().substring(1);
-        } else if (array[i].toString().trim().endsWith('}') ||
-            array[i].toString().trim().endsWith(']')) {
-          evaString =
-              array[i].toString().substring(0, array[i].toString().length - 1);
-        }
-        print('transformed value to validate: ${evaString}');
+        String arrayElement;
+        commaIndex = arrayBody.indexOf(',');
 
-        retval = _getValueObject(evaString);
-        print('retval: $retval');
+        if (commaIndex > -1) {
+          arrayElement = arrayBody.substring(0, commaIndex);
+        } else {
+          arrayElement = arrayBody.substring(0);
+        }
+
+        print(
+            '[_validateArray] commaIndex: $commaIndex arrayElement: $arrayElement');
+
+        // Check for nested array and/or objects
+        if (arrayElement.contains('[') && arrayElement.contains('{')) {
+          // parse the combined nesting...
+          print('combined nesting');
+        } else if (arrayElement.contains('[')) {
+          // parse nested array
+          print('array nesting');
+        } else if (arrayElement.contains('{')) {
+          //parse nested object
+          print('object nesting');
+        } else {
+          // there is no nesting - verify the element
+          retval = _getValueObject(arrayElement);
+          print('[_validateArray] from _getValueObject retval: $retval');
+        }
+
+        // Cut out the first element
+        arrayBody = arrayBody.substring(commaIndex + 1);
+
+        print('[_validateArray] remaining body: $arrayBody');
+
         if (retval == 'invalid') {
+          validity = false;
           break;
+        } else if (commaIndex == -1 && retval != 'invalid') {
+          validity = true;
         }
-        i++;
-      } while (i < array.length);
+      } while (commaIndex != -1);
 
-      // On exit of the cycle do check the value to return
-      if (retval == 'invalid') {
-        return retval;
-      } else {
-        return restValue;
-      }
+      // Return the final validation result
+      return validity;
+    }
+
+    /// Validate an Object previously parsed
+    ///
+    bool _validateObject(String parsedObject) {
+      bool validity = false;
+
+      validity = this.validate(parsedObject);
+      print('internal loop for nested json validate - result: $validity');
+
+      return validity;
     }
 
     /// verify for numbers
@@ -335,6 +359,91 @@ class JsonValidator {
       return result;
     }
 
+    /// Parsing array from the begining of the restValue string
+    /// This function assumes the string to be parsed BEGINS with
+    /// [bracketType] either one of '[' or '{'
+    String _parseEnclosure(String bracketType, [String toBeParsed]) {
+      String tmpHolder;
+      String openBracket;
+      String closeBracket;
+
+      if (bracketType == '[') {
+        openBracket = '[';
+        closeBracket = ']';
+      } else if (bracketType == '{') {
+        openBracket = '{';
+        closeBracket = '}';
+      } else {
+        return 'invalid';
+      }
+
+      print(
+          '[_parseEnclosure] param?: $bracketType, $openBracket $closeBracket');
+
+      if (toBeParsed == null) {
+        tmpHolder = restValue;
+      } else {
+        tmpHolder = toBeParsed;
+      }
+
+      print('[_parseEnclosure] tmpHolder: $tmpHolder');
+
+      // Calculate currly brakets enclosures
+      Map<String, List<int>> _cbIndexMap =
+          _calculateEnclosures(oBraket: '{', cBraket: '}');
+      List<int> cbOpenningIndexes = _cbIndexMap['oil'];
+      List<int> cbClosingIndexes = _cbIndexMap['cil'];
+
+      // Calculate square brakets enclosures
+      Map<String, List<int>> _sbIndexMap =
+          _calculateEnclosures(oBraket: '[', cBraket: ']');
+      List<int> sbOpenningIndexes = _sbIndexMap['oil'];
+      List<int> sbClosingIndexes = _sbIndexMap['cil'];
+
+      // Check for correct enclosure
+      if (sbOpenningIndexes.length != sbClosingIndexes.length ||
+          cbOpenningIndexes.length != cbClosingIndexes.length) {
+        return 'invalid';
+      }
+
+      // Get the entire array string (find the closing bracket)
+      int b = 1;
+      String char = '';
+      int closingBracketIndex;
+      while (b != 0) {
+        // [i] starts from 1 ASSUMING the char at position 0 is already the
+        // opening bracket ( '[' or '{') thus b=1
+        for (var i = 1; i < tmpHolder.length; i++) {
+          char = tmpHolder[i];
+          if (char == '$openBracket') {
+            b++;
+          } else if (char == '$closeBracket') {
+            b--;
+            if (b == 0) {
+              closingBracketIndex = i;
+              break;
+            }
+          }
+        }
+        // Force the b to ZERO
+        if (b != 0) {
+          closingBracketIndex = -1;
+          b = 0;
+        }
+      }
+
+      print('[_parseEnclosure] closingBracketIndex: $closingBracketIndex');
+
+      if (closingBracketIndex > 0 &&
+          (tmpHolder.length - 1 >= closingBracketIndex)) {
+        String result = tmpHolder.substring(0, closingBracketIndex + 1);
+        print('[_parseEnclosure] The parsed result: $result');
+        return result;
+      } else {
+        return 'invalid';
+      }
+    }
+
     /// handle ARRAYS / OBJECTS as value from the token
     ///
     /// Objects
@@ -349,7 +458,28 @@ class JsonValidator {
     ///           end-object
     ///  member = string name-separator value
     ///
+    String _handleObject() {
+      String parsedObject = _parseEnclosure('{');
+
+      // Redefining commaIndex for the comma located after the last closing bracket
+      commaIndex = restValue.indexOf(',', parsedObject.length);
+
+      // Validate an object and return BOOL for its validity
+      if (_validateObject(parsedObject)) {
+        if (commaIndex == -1) {
+          // Successfully verified object as last pair's value
+          return '';
+        } else {
+          // If the object is valid, but there is remaining part after it - return it
+          return restValue.substring(commaIndex + 1).trim();
+        }
+      } else {
+        return 'invalid';
+      }
+    }
+
     /// Arrays
+    ///
     /// An array structure is represented as square brackets surrounding zero
     /// or more values (or elements).  Elements are separated by commas.
     ///
@@ -357,75 +487,29 @@ class JsonValidator {
     ///
     /// There is no requirement that the values in an array be of the same
     /// type.
-    String _handleNested({@required oBraket, @required cBraket}) {
-      bool validatedObj = false;
+    String _handleArray() {
+      String parsedArray = _parseEnclosure('[');
+      print('[_handleArray] parsedArray: $parsedArray');
 
-      // Calculate enclosures
-      Map<String, List<int>> _indexesMap =
-          _calculateEnclosures(oBraket: oBraket, cBraket: cBraket);
-      List<int> openningIndexes = _indexesMap['oil'];
-      List<int> closingIndexes = _indexesMap['cil'];
+      if (parsedArray == 'invalid') return 'invalid';
 
-      print(
-          'opening: ${openningIndexes.length}; closing: ${closingIndexes.length}');
+      // Redefining commaIndex for the comma located after the last closing bracket
+      commaIndex = restValue.indexOf(',', parsedArray.length);
 
-      // Invalid (asymetric) enclosure case
-      if (openningIndexes.length != closingIndexes.length) {
-        return 'invalid';
-      }
-
-      // Redefining commaIndex for the comma located after the last closing tag
-      commaIndex =
-          restValue.indexOf(',', closingIndexes[closingIndexes.length - 2]);
-
-      // Validate a single array object
-      if ('$oBraket$cBraket' == '[]') {
-        int enclosureLevels = openningIndexes.length - 1;
-        String rsl;
-        rsl = _validateSingleArray(
-            openningIndexes[0], closingIndexes[enclosureLevels - 1]);
-
-        print('validate single Array result: $rsl');
-        if (rsl == 'invalid') return rsl;
-
+      // Validate an array and return BOOL for its validity
+      if (_validateArray(parsedArray)) {
         if (commaIndex == -1) {
-          // Successfully verified single array
+          // Successfully verified array as last pair's value
           return '';
         } else {
-          String obj = restValue.substring(commaIndex + 1).trim();
-          print('[_validateSingleArray] NOT Last token rest value: $obj');
-          return obj;
-        }
-      } else if ('$oBraket$cBraket' == '{}') {
-        if (commaIndex == -1) {
-          validatedObj = _validateNameValuePair(restValue.trim());
-          print(
-              'validating restValue: $restValue | validated result: $validatedObj');
-          if (validatedObj) {
-            return restValue;
-          } else {
-            return 'invalid';
-          }
-          // Not the last token in the string
-        } else {
-          // there is more tokens after the object
-          String obj = restValue.substring(0, commaIndex);
-          print('value to send: $obj');
-          validatedObj = _validateNameValuePair(obj.trim());
-          print(
-              'validating restValue: $restValue | validated result: $validatedObj');
-          if (validatedObj) {
-            return obj;
-          } else {
-            return 'invalid';
-          }
+          // If the array is valid, but there is remaining part after it - return it
+          return restValue.substring(commaIndex + 1).trim();
         }
       } else {
         return 'invalid';
       }
-
-      // Validate json (map-{}) object
     }
+
     // <<<<================================================================>>>>
 
     /// Getting the lead char of the provided restValue
@@ -435,12 +519,12 @@ class JsonValidator {
         result = _handleDQ();
         break;
       case '[':
-        result = _handleNested(oBraket: '[', cBraket: ']');
-        print('[_handleNested-[] ] $result');
+        result = _handleArray();
+        print('[_handleArray result] $result');
         break;
       case '{':
-        result = _handleNested(oBraket: '{', cBraket: '}');
-        print('[_handleNested-{} ] $result');
+        result = _handleObject();
+        print('[_handleObject result] $result');
         break;
       case 't':
         result = _handleTFN();
