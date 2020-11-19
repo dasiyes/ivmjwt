@@ -344,62 +344,91 @@ class JsonValidator {
       String arrayBody = parsedArray.substring(1, parsedArray.length - 1);
       int commaIndex = -1;
 
-      print('[_validateArray] body to verify: $arrayBody');
-
-      String firstChar = arrayBody.substring(0, 1);
-
-      if (firstChar == '{' || firstChar == '[') {
-        do {
-          String nestedElement = _parseEnclosure('$firstChar', arrayBody);
-
-          if (firstChar == '{') {
-            bool validityNestedElement = validate(nestedElement);
-            print(
-                '[_validateArray] validityNestedElement: $validityNestedElement');
-
-            if (validityNestedElement) {
-              print(
-                  '[_validateArray] \n arrayBody.length: ${arrayBody.trim().length},>? \n nestedElement.trim().length: ${nestedElement.trim().length} \n arrayBody: $arrayBody \n nestedElement: $nestedElement');
-              if (arrayBody.trim().length == nestedElement.trim().length + 1) {
-                arrayBody = '';
-                print('[_validateArray] arrayBody: $arrayBody');
-              } else if (arrayBody.length > nestedElement.length + 1) {
-                // cutting the first (verified) element
-                arrayBody = arrayBody.substring(nestedElement.length).trim();
-                firstChar = arrayBody.substring(0, 1);
-                print('[_validateArray] arrayBody: $arrayBody');
-              } else {
-                validity = true;
-              }
-            } else {
-              validity = false;
-              break;
-            }
-          } else if (firstChar == '[') {
-            if (_validateArray(nestedElement)) {
-              if (arrayBody.length > nestedElement.length) {
-                // objElement.length + 2 will include the following comma if exists
-                arrayBody = arrayBody.substring(nestedElement.length).trim();
-                firstChar = arrayBody.substring(0, 1);
-                print('[_validateArray] arrayBody: $arrayBody');
-              } else if (arrayBody.trim().length == nestedElement.length) {
-                arrayBody = '';
-                print('[_validateArray] arrayBody: $arrayBody');
-              } else {
-                validity = true;
-              }
-            } else {
-              validity = false;
-              break;
-            }
-          }
-        } while (arrayBody.startsWith('{') || arrayBody.startsWith('['));
-
-        print('[_validateArray] arrayBody: $arrayBody');
-        if (arrayBody.isEmpty) return validity;
-      }
+      print('[_validateArray] initial arrayBody to verify: $arrayBody');
 
       do {
+        String firstChar = arrayBody.substring(0, 1);
+
+        // Process arrayBody that starts with either one of '[' or '{'
+        if (firstChar == '{' || firstChar == '[') {
+          do {
+            String nestedElement = _parseEnclosure('$firstChar', arrayBody);
+
+            if (firstChar == '{') {
+              bool validityNestedElement = validate(nestedElement);
+              print(
+                  '[_validateArray] validityNestedElement: $validityNestedElement');
+
+              if (validityNestedElement) {
+                print(
+                    '[_validateArray] \n arrayBody.length: ${arrayBody.trim().length},>? \n nestedElement.trim().length: ${nestedElement.trim().length} \n arrayBody: $arrayBody \n nestedElement: $nestedElement');
+
+                if (arrayBody.trim().length == nestedElement.trim().length) {
+                  arrayBody = '';
+                  validity = validityNestedElement;
+                  print(
+                      '[_validateArray] object ={= expects empty arrayBody: $arrayBody');
+                } else if (arrayBody.length > nestedElement.length + 1) {
+                  // cutting the first (verified) element
+                  arrayBody = arrayBody.substring(nestedElement.length).trim();
+
+                  // Check and cut-off the leading and trailing spaces and commas.
+                  if (arrayBody.trim().endsWith(',')) {
+                    arrayBody = arrayBody.trim().substring(0, arrayBody.length);
+                    arrayBody = arrayBody.trim();
+                  }
+                  if (arrayBody.trim().startsWith(',')) {
+                    arrayBody = arrayBody.trim().substring(1);
+                    arrayBody = arrayBody.trim();
+                  }
+
+                  firstChar = arrayBody.substring(0, 1);
+                  print(
+                      '[_validateArray] object ={= expects shorter arrayBody: $arrayBody and firstChar: $firstChar');
+                } else {
+                  validity = true;
+                }
+              } else {
+                validity = false;
+                break;
+              }
+            } else if (firstChar == '[') {
+              if (_validateArray(nestedElement)) {
+                if (arrayBody.trim().length == nestedElement.length) {
+                  arrayBody = '';
+                  print(
+                      '[_validateArray] startsWith =[= arrayBody: $arrayBody');
+                } else if (arrayBody.length > nestedElement.length) {
+                  // cutting the first (verified) element
+                  arrayBody = arrayBody.substring(nestedElement.length).trim();
+                  firstChar = arrayBody.substring(0, 1);
+                  print(
+                      '[_validateArray] array =[= expects rediced arrayBody: $arrayBody');
+                } else {
+                  validity = true;
+                }
+              } else {
+                validity = false;
+                break;
+              }
+            }
+
+            // Check and cut-off the leading and trailing spaces and commas.
+            if (arrayBody.trim().endsWith(',')) {
+              arrayBody = arrayBody.trim().substring(0, arrayBody.length);
+            }
+            if (arrayBody.trim().startsWith(',')) {
+              arrayBody = arrayBody.trim().substring(1);
+            }
+          } while (arrayBody.startsWith('{') || arrayBody.startsWith('['));
+
+          print(
+              '[_validateArray] after the do-while check for start with brackets \n- arrayBody: $arrayBody \n validity: $validity');
+          if (arrayBody.isEmpty) return validity;
+        }
+
+        // After confirmation the element is nor another array or objec
+        // process the elements further as single pair's value
         String arrayElement;
         commaIndex = arrayBody.indexOf(',');
 
@@ -412,38 +441,16 @@ class JsonValidator {
         print(
             '[_validateArray] commaIndex: $commaIndex arrayElement: $arrayElement');
 
-        // Check for nested array and/or objects
-        if (arrayElement.contains('[') && arrayElement.contains('{')) {
-          // parse the combined nesting...
-          print('combined nesting');
-        } else if (arrayElement.contains('[')) {
-          // parse nested array
-          print('array nesting');
-        } else if (arrayElement.contains('{')) {
-          //parse nested object
-          if (arrayElement.startsWith('{')) {
-            if (_validateObject(arrayElement)) {
-              retval = 'valid_object';
-            } else {
-              validity = false;
-              break;
-            }
-          } else if (arrayElement.startsWith('"') &&
-              arrayElement.endsWith('"')) {
-            // there is no nesting - verify the element
-            retval = _getValueObject(arrayElement);
-            print('[_validateArray] from _getValueObject retval: $retval');
-          }
-        } else {
-          // there is no nesting - verify the element
-          retval = _getValueObject(arrayElement);
-          print('[_validateArray] from _getValueObject retval: $retval');
-        }
+        // there is no nesting - verify the element
+        retval = _getValueObject(arrayElement);
+        print('[_validateArray] from _getValueObject retval: $retval');
 
         // Cut out the first element
+        print(
+            '[_validateArray] arrayBody: $arrayBody, commaIndex: $commaIndex, the substring will start after the ccomma');
         arrayBody = arrayBody.substring(commaIndex + 1);
 
-        print('[_validateArray] remaining body: $arrayBody');
+        print('[_validateArray] remaining body after the cut-off: $arrayBody');
 
         if (retval == 'invalid') {
           validity = false;
