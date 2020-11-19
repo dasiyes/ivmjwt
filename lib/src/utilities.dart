@@ -30,124 +30,6 @@ class Utilities {
     }
   }
 
-  /// Verify JSON object
-  ///
-  /// This function is to support the JWT segments validation purpose only.
-  /// It will respect RFC8259 but not in any matter fully implement it.
-  ///
-  // TODO: REwork the enntire function for validating json object
-  static bool validateSegmentToJSON(String segment) {
-    /// Private function to verify if string value converts well to int or double.
-
-    // <<<============ local functions ============>>>
-    bool _isNum(String source) {
-      try {
-        num.parse(source);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    /// Validate json elements
-    ///
-    bool _validateJsonElement(List<String> bodyParts) {
-      // Verify if each part consists from a colon(:) splited,
-      // correctly formatted keys and values.
-      bodyParts.forEach((element) {
-        try {
-          final List<String> kv = element.split(RegExp(r":(?!//)"));
-          if (kv.isNotEmpty && kv.length == 2) {
-            kv.forEach((node) {
-              print('node: $node');
-              // Verify if each node of (K,V) pair meets at least one of the
-              // conditions from the below list:
-              // * surrounded by: "", [] or {}
-              // * null, false or true
-              // * is [int] or [double] runtimeType
-              if (node == 'false' ||
-                  node == 'true' ||
-                  node == 'null' ||
-                  _isNum(node) ||
-                  (node.startsWith("[") && node.endsWith("]")) ||
-                  (node.startsWith("{") && node.endsWith("}")) ||
-                  (node.startsWith("\"") && node.endsWith("\""))) {
-                // do nothing
-              } else {
-                throw Exception('Invalid quotation of keys or values!');
-              }
-            });
-          } else {
-            print('elem: $element');
-            print('kv: $kv');
-            throw Exception('Invalid key-value pair in the segment value!');
-          }
-        } catch (e) {
-          rethrow;
-        }
-      });
-      // -=- -=- Return verification confirmation -=- -=-
-      return true;
-
-      // -=- -=-
-    }
-
-    //
-    // <<<============ End of local functions ============>>>
-
-    print('segment to validte: $segment');
-
-    // Verify bodyPart List
-
-    // Verify if the value provided satisfy minimum requirements
-    if (segment.isEmpty || segment.trim().length < 7) {
-      throw Exception('Invalid segment string length!');
-    }
-
-    // Verify the segment value is properlly noteted as per requiremnts
-    if (segment.trim().startsWith("{") && segment.trim().endsWith("}")) {
-      // Remove first and last chars from the segment string
-      var segmentBody = segment.trim().substring(1, segment.trim().length);
-      segmentBody = segmentBody.substring(0, segmentBody.trim().length - 1);
-
-      // List with k,v pairs extracted from the segment
-      List<String> bodyParts = [];
-      print('segmentBody: $segmentBody');
-
-      // Segment body split on 2 parts
-      final spliter_inx = segmentBody.indexOf(':');
-      bodyParts.add(segmentBody.substring(0, spliter_inx));
-
-      final restString = segmentBody.substring(spliter_inx + 1);
-      final firstChar = restString.substring(0, 1);
-
-      switch (firstChar) {
-        case "\"":
-          bodyParts.add(restString.substring(0, restString.indexOf(',')));
-          break;
-        case "[":
-          bodyParts.add(restString);
-          print('bodyParts: ${bodyParts.length}');
-          break;
-        case "{":
-          // FIXME: not a valid statement
-          bodyParts.add(restString);
-          break;
-        default:
-          break;
-      }
-
-      if (bodyParts.isNotEmpty && bodyParts.length == 2) {
-        print('bodyParts >1: $bodyParts and bp.length ${bodyParts.length}');
-        return _validateJsonElement(bodyParts);
-      } else {
-        throw Exception('Invalid segment body content!');
-      }
-    } else {
-      throw Exception('Invalid segment format!');
-    }
-  }
-
   /// Get Object Data tool
   ///
   /// [what] parameter defines if the method will return object's fields or methods
@@ -191,20 +73,15 @@ class Utilities {
   /// cache refreshing mechanism for expired values
   ///
   static Future<RSAPublicKey> getJWK(String jwks, String kid) async {
-    // TODO: [JWT-3] implement get JWK
-    // Convert the string of jwks to json. The string have been verified in previous steps of the main function.
+    // Convert the string of jwks to json. The string have been verified in
+    // previous steps of the main function.
     Map<String, dynamic> json_keys = json.decode(jwks);
 
     try {
       // Instantiate the JWKS object
       IvmRS256JWKS _jwks = IvmRS256JWKS.fromJson(json_keys);
-      List<IvmRS256JWK> keys = _jwks.getKeysAsList();
-      keys.forEach((key) {
-        if (key.kid == kid) {
-          return _publicKey(key);
-        }
-      });
-      return null;
+      IvmRS256JWK key = _jwks.getKeyByKid(kid);
+      return _publicKey(key);
     } catch (e) {
       rethrow;
     }
