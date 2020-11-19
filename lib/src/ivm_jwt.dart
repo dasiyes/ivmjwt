@@ -81,6 +81,8 @@ class IvmJWT extends JWT {
     try {
       final jv = JsonValidator(jwks);
       validJWKS = jv.validate();
+      print('validJWKS: $validJWKS');
+
       //validJWKS = await Utilities.validateSegmentToJSON(jwks);
     } catch (e) {
       throw Exception('Error validating to json the provided JWKs value! $e.');

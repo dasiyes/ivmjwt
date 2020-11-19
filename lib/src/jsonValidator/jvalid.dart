@@ -22,7 +22,7 @@ class JsonValidator {
     // An empty string is not a valid json object
     if (json.isEmpty) return false;
 
-    // A zero length object is valid (faster return than value validation)
+    // A zero length object is a valid json.
     if (json.length == 2 && json.startsWith("{") && json.endsWith("}"))
       return true;
 
@@ -431,7 +431,11 @@ class JsonValidator {
     ///
     String _handleTFN() {
       if (commaIndex == -1) {
-        result = restValue;
+        if (['true', 'false', 'null'].contains(restValue)) {
+          result = restValue;
+        } else {
+          result = 'invalid';
+        }
       } else {
         result = restValue.substring(0, commaIndex);
       }
