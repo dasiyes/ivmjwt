@@ -2,21 +2,81 @@ part of '../../ivmjwt.dart';
 
 /// Check signature
 
-// The last segment of a JWT is the signature, which is used to verify that the token was signed by the sender and not altered in any way. The Signature is created using the Header and Payload segments, a signing algorithm, and a secret or public key (depending on the chosen signing algorithm).
-bool _verifySignature(String header, String payload) {}
-// To verify the signature, you will need to:
+/// The last segment of a JWT is the signature, which is used to verify that the token was signed by the sender and not altered in any way. The Signature is created using the Header and Payload segments, a signing algorithm, and a secret or public key (depending on the chosen signing algorithm).
+///
+/// * Check the signing algorithm. (Done in ALG_CHECK: in ivm_jwt.dart)
+/// * Retrieve the alg property from the decoded Header.
+/// * Ensure that it is an allowed algorithm. Specifically, to avoid certain attacks, make sure you disallow none.
+/// * Check that it matches the algorithm selected in the verification function name [e.g. verifyRS256].
+/// * Confirm that the token is correctly signed using the proper key.
+///
+/// **To verify the signature, you will need to:**
+///
+Future<bool> _verifyRS256Signature(
+    {@required String header,
+    @required String payload,
+    @required String token,
+    @required String alg,
+    @required String kid,
+    @required String jwks}) async {
+  // step-PREP-0
+  final List<String> tokenSegments = token.split('.');
+  RSAPublicKey _usePKey;
+  if (alg.isEmpty || alg == 'none') return false;
 
-// Check the signing algorithm.
+  // step-PREP-1: get the public key:
+  //
+  try {
+    // print('[_verifyRS256Signature] jwks: $jwks, kid: $kid');
+    _usePKey = await Utilities.getJWK(jwks, kid);
+  } catch (e) {
+    throw Exception(
+        'Unable to acquire public key for signature verification! $e.');
+  }
 
-// Retrieve the alg property from the decoded Header.
+  // Verify if the algorithm matches the
+  if (alg == 'RS256') {
+    // Prepare the token's signature (segment-3) and the header and the payload
+    // as combined signedData - all in Uint8List format;
+    final Uint8List u8lOrgSignature =
+        base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-// Ensure that it is an allowed algorithm. Specifically, to avoid certain attacks, make sure you disallow none.
+    final Uint8List sep = utf8.encode('.');
+    final Uint8List headerData =
+        base64Url.decode(base64Url.normalize(tokenSegments[0]));
+    final Uint8List payloadData =
+        base64Url.decode(base64Url.normalize(tokenSegments[1]));
 
-// Check that it matches the algorithm you selected when you registered your Application or API with Auth0.
+    final Uint8List signedData =
+        Uint8List.fromList(headerData + sep + payloadData);
 
-// Confirm that the token is correctly signed using the proper key.
+    // return the result of Verify the signature
+    return _rsaVerify(_usePKey, signedData, u8lOrgSignature);
+  } else {
+    throw Exception('Invalid signature verification algorithm selected!');
+  }
+}
 
-// To verify that the signature is correct, you need to generate a new Base64url-encoded signature using the public key (RS256) or secret (HS256) and verify that it matches the original Signature included with the JWT:
+// PointyCastle library example function.
+// Using it for verifying the signature segment of RS2356 signed JWT token.
+//
+bool _rsaVerify(
+    RSAPublicKey publicKey, Uint8List signedData, Uint8List signature) {
+  final sig = RSASignature(signature);
+
+  final verifier = RSASigner(SHA256Digest(), '0609608648016503040201');
+
+  verifier.init(
+      false, PublicKeyParameter<RSAPublicKey>(publicKey)); // false=verify
+
+  try {
+    return verifier.verifySignature(signedData, sig);
+  } on ArgumentError {
+    return false; // for Pointy Castle 1.0.2 when signature has been modified
+  }
+}
+
+// 1. To verify that the signature is correct, you need to generate a new Base64url-encoded signature using the public key (RS256) or secret (HS256) and verify that it matches the original Signature included with the JWT:
 
 // Take the original Base64url-encoded Header and original Base64url-encoded Payload segments (Base64url-encoded Header + "." + Base64url-encoded Payload), and hash them with SHA-256.
 
