@@ -43,6 +43,9 @@ class JsonValidator {
     // define the function exit point
     if (_value.isEmpty) return false;
 
+    // Minumum token length (6 chars = {"":n}) check
+    if (_value.length < 6) return false;
+
     do {
       // cycling validation until the entire string is validated or
       // _value 'invalid' is sent.
@@ -479,6 +482,10 @@ class JsonValidator {
     ///  member = string name-separator value
     ///
     String _handleObject() {
+      // Invalidate smaller and not valid
+      if (restValue.length == 1 || (restValue.length == 2 && restValue != '{}'))
+        return 'invalid';
+
       String parsedObject = _parseEnclosure('{');
 
       // Redefining commaIndex for the comma located after the last closing bracket
@@ -508,6 +515,11 @@ class JsonValidator {
     /// There is no requirement that the values in an array be of the same
     /// type.
     String _handleArray() {
+      // Identify an empty array ( 0 elements, allowed by the standard)
+      if (restValue.startsWith('[') &&
+          restValue.endsWith(']') &&
+          restValue.length == 2) return '';
+
       String parsedArray = _parseEnclosure('[');
 
       if (parsedArray == 'invalid') return 'invalid';
