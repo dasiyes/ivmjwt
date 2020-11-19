@@ -43,8 +43,6 @@ class JsonValidator {
     // define the function exit point
     if (_value.isEmpty) return false;
 
-    print('initial value: $_value');
-
     do {
       // cycling validation until the entire string is validated or
       // _value 'invalid' is sent.
@@ -79,17 +77,15 @@ class JsonValidator {
     String retValue;
     String spc = _getSuroundingChars(value.trim());
 
-    // Remove the object's lead and closing chars or not
-    // depending on the surounding chars
+    // Verify the array
     if (spc == '[]') {
       tokens = _getValueObject(value);
-      print('[_getValueObject result]: tokens to evaluate: $tokens');
     }
 
-    // IMPORTANT!!! Do not join with the upper IF statement!!!
+    // Remove the object's lead and closing chars or not
+    // depending on the surounding chars
     if (spc == '{}') {
       tokens = value.trim().substring(1, value.length - 1);
-      print('[_validateFirstKeyValuePair {}]: tokens to evaluate: $tokens');
     } else {
       tokens = value.trim();
     }
@@ -140,15 +136,13 @@ class JsonValidator {
 
     // Extract the Value part from the key-value token;
     if (_possibleFC.contains(valueStartsWith)) {
-      print(
-          'firstPairName: $firstPairName, _getValueObject param: ${tokens.substring(colonIndex + 1).trim()}');
       firstPairValue = _getValueObject(tokens.substring(colonIndex + 1).trim());
 
-      // If the value part starts with '[' the value may be a valid ARRAY and the commaIndex needs to be redefined
+      // If the value part starts with '[' the value may be a valid ARRAY and
+      // the commaIndex needs to be redefined
       if (valueStartsWith == '[') {
         _isAnArray = true;
       }
-      print('firstPairValue: $firstPairValue');
     } else {
       return 'invalid';
     }
@@ -172,11 +166,7 @@ class JsonValidator {
     if (_validPairName && _validPairValue && !_isAnArray && commaIndex != -1) {
       if (spc == '{}') {
         retValue = '{${tokens.substring(commaIndex + 1)}}';
-      } else if (spc == '[]') {
-        print('[ret value from [] ] - ${tokens.substring(commaIndex + 1)}');
-        print('retValue: $retValue');
       }
-      print('step-3 compose retValue: $retValue');
       return retValue;
     } else if (_validPairName && _validPairValue && _isAnArray) {
       if (firstPairValue.isEmpty) {
@@ -184,7 +174,6 @@ class JsonValidator {
       } else {
         retValue = '{$firstPairValue}';
       }
-      print('retValue: $retValue');
       return retValue;
     } else if (_validPairName && _validPairValue && commaIndex == -1) {
       return '';
@@ -214,9 +203,8 @@ class JsonValidator {
       // commaIndex will NOT work here due to existing commas within the array.
       List<int> openingArrayIndexes = [];
       List<int> closingArrayIndexes = [];
-      // Calc valid array's enclosures
-      print('[_calculateEnclosures] -restValue: $restValue');
 
+      // Calc valid array's enclosures
       String char;
       int dq = 0;
       int i = 0;
@@ -254,16 +242,11 @@ class JsonValidator {
         return 'invalid';
       }
 
-      print(
-          '[_parseEnclosure] param?: $bracketType, $openBracket $closeBracket');
-
       if (toBeParsed == null) {
         tmpHolder = restValue;
       } else {
         tmpHolder = toBeParsed;
       }
-
-      print('[_parseEnclosure] tmpHolder: $tmpHolder');
 
       // Calculate currly brakets enclosures
       Map<String, List<int>> _cbIndexMap =
@@ -278,10 +261,6 @@ class JsonValidator {
       List<int> sbClosingIndexes = _sbIndexMap['cil'];
 
       // Check for correct enclosure
-      print('[_parseEnclosure] =[= indexes: $sbOpenningIndexes');
-      print('[_parseEnclosure] =]= indexes: $sbClosingIndexes');
-      print('[_parseEnclosure] ={= indexes: $cbOpenningIndexes');
-      print('[_parseEnclosure] =}= indexes: $cbClosingIndexes');
       if (sbOpenningIndexes.length != sbClosingIndexes.length ||
           cbOpenningIndexes.length != cbClosingIndexes.length) {
         return 'invalid';
@@ -313,12 +292,10 @@ class JsonValidator {
         }
       }
 
-      print('[_parseEnclosure] closingBracketIndex: $closingBracketIndex');
-
       if (closingBracketIndex > 0 &&
           (tmpHolder.length - 1 >= closingBracketIndex)) {
         String result = tmpHolder.substring(0, closingBracketIndex + 1);
-        print('[_parseEnclosure] The parsed result: $result');
+
         return result;
       } else {
         return 'invalid';
@@ -328,12 +305,7 @@ class JsonValidator {
     /// Validate an Object previously parsed
     ///
     bool _validateObject(String parsedObject) {
-      bool validity = false;
-
-      validity = this.validate(parsedObject);
-      print('internal loop for nested json validate - result: $validity');
-
-      return validity;
+      return this.validate(parsedObject);
     }
 
     /// Validate an ARRAY previously parsed
@@ -343,9 +315,6 @@ class JsonValidator {
       String retval;
       String arrayBody = parsedArray.substring(1, parsedArray.length - 1);
       int commaIndex = -1;
-
-      print('[_validateArray] initial arrayBody to verify: $arrayBody');
-
       do {
         String firstChar = arrayBody.substring(0, 1);
 
@@ -356,18 +325,11 @@ class JsonValidator {
 
             if (firstChar == '{') {
               bool validityNestedElement = validate(nestedElement);
-              print(
-                  '[_validateArray] validityNestedElement: $validityNestedElement');
 
               if (validityNestedElement) {
-                print(
-                    '[_validateArray] \n arrayBody.length: ${arrayBody.trim().length},>? \n nestedElement.trim().length: ${nestedElement.trim().length} \n arrayBody: $arrayBody \n nestedElement: $nestedElement');
-
                 if (arrayBody.trim().length == nestedElement.trim().length) {
                   arrayBody = '';
                   validity = validityNestedElement;
-                  print(
-                      '[_validateArray] object ={= expects empty arrayBody: $arrayBody');
                 } else if (arrayBody.length > nestedElement.length + 1) {
                   // cutting the first (verified) element
                   arrayBody = arrayBody.substring(nestedElement.length).trim();
@@ -383,8 +345,6 @@ class JsonValidator {
                   }
 
                   firstChar = arrayBody.substring(0, 1);
-                  print(
-                      '[_validateArray] object ={= expects shorter arrayBody: $arrayBody and firstChar: $firstChar');
                 } else {
                   validity = true;
                 }
@@ -396,14 +356,10 @@ class JsonValidator {
               if (_validateArray(nestedElement)) {
                 if (arrayBody.trim().length == nestedElement.length) {
                   arrayBody = '';
-                  print(
-                      '[_validateArray] startsWith =[= arrayBody: $arrayBody');
                 } else if (arrayBody.length > nestedElement.length) {
                   // cutting the first (verified) element
                   arrayBody = arrayBody.substring(nestedElement.length).trim();
                   firstChar = arrayBody.substring(0, 1);
-                  print(
-                      '[_validateArray] array =[= expects rediced arrayBody: $arrayBody');
                 } else {
                   validity = true;
                 }
@@ -422,8 +378,6 @@ class JsonValidator {
             }
           } while (arrayBody.startsWith('{') || arrayBody.startsWith('['));
 
-          print(
-              '[_validateArray] after the do-while check for start with brackets \n- arrayBody: $arrayBody \n validity: $validity');
           if (arrayBody.isEmpty) return validity;
         }
 
@@ -437,21 +391,11 @@ class JsonValidator {
         } else {
           arrayElement = arrayBody.substring(0);
         }
-
-        print(
-            '[_validateArray] commaIndex: $commaIndex arrayElement: $arrayElement');
-
         // there is no nesting - verify the element
         retval = _getValueObject(arrayElement);
-        print('[_validateArray] from _getValueObject retval: $retval');
 
         // Cut out the first element
-        print(
-            '[_validateArray] arrayBody: $arrayBody, commaIndex: $commaIndex, the substring will start after the ccomma');
         arrayBody = arrayBody.substring(commaIndex + 1);
-
-        print('[_validateArray] remaining body after the cut-off: $arrayBody');
-
         if (retval == 'invalid') {
           validity = false;
           break;
@@ -472,14 +416,12 @@ class JsonValidator {
           num.parse(restValue).toString();
           return restValue;
         } catch (e) {
-          print('Exception while parsing to number: $e');
           return 'invalid';
         }
       } else {
         try {
           return num.parse(restValue.substring(0, commaIndex)).toString();
         } catch (e) {
-          print('Exception while parsing to number: $e');
           return 'invalid';
         }
       }
@@ -563,7 +505,6 @@ class JsonValidator {
     /// type.
     String _handleArray() {
       String parsedArray = _parseEnclosure('[');
-      print('[_handleArray] parsedArray: $parsedArray');
 
       if (parsedArray == 'invalid') return 'invalid';
 
@@ -595,11 +536,9 @@ class JsonValidator {
         break;
       case '[':
         result = _handleArray();
-        print('[_handleArray result] $result');
         break;
       case '{':
         result = _handleObject();
-        print('[_handleObject result] $result');
         break;
       case 't':
         result = _handleTFN();
