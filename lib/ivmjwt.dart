@@ -6,6 +6,7 @@
 library ivmjwt;
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
@@ -37,3 +38,4 @@ part 'src/verifyJWT/ivm_check_signature.dart';
 part 'ivmjwt.g.dart';
 
 part 'src/utilities.dart';
+part 'src/jsonValidator/jvalid.dart';

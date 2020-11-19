@@ -73,15 +73,16 @@ class IvmJWT extends JWT {
       throw Exception('Token integrity validation has failed!');
     }
 
-    /// For signature verification the [jwks] is required. It must run over json validation first.
-    ///
-    // TODO: verify the [jwks] if it is a vlid json object
+    /// For signature verification the [jwks] is required.
+    /// It must run over json validation first.
     //
     // Verify if the jwks is a valid JSON
     try {
-      validJWKS = await Utilities.validateSegmentToJSON(jwks);
+      final jv = JsonValidator(jwks);
+      validJWKS = jv.validate();
+      print('validJWKS: $validJWKS');
     } catch (e) {
-      throw Exception('Error validating header segment! $e.');
+      throw Exception('Error validating to json the provided JWKs value! $e.');
     }
 
     // Signature verification result prep

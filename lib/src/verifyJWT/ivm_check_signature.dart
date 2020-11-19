@@ -22,16 +22,17 @@ Future<bool> _verifyRS256Signature(
   // step-PREP-0
   final List<String> tokenSegments = token.split('.');
   RSAPublicKey _usePKey;
+  if (alg.isEmpty || alg == 'none') return false;
 
   // step-PREP-1: get the public key:
   //
   try {
+    // print('[_verifyRS256Signature] jwks: $jwks, kid: $kid');
     _usePKey = await Utilities.getJWK(jwks, kid);
   } catch (e) {
     throw Exception(
         'Unable to acquire public key for signature verification! $e.');
   }
-
 
   // Verify if the algorithm matches the
   if (alg == 'RS256') {

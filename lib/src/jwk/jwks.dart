@@ -20,7 +20,7 @@ abstract class JWKS implements JWK {
     if (!_jwks.keys.contains('keys')) {
       throw e;
     } else {
-      if (!_jwks['keys'].runtimeType.toString().startsWith('JSArray')) {
+      if (!_jwks['keys'].runtimeType.toString().startsWith('List')) {
         print('...parameter type is: ${_jwks.keys.runtimeType.toString()}');
         throw e;
       }
@@ -34,7 +34,7 @@ abstract class JWKS implements JWK {
     if (!_jwks.keys.contains('keys')) {
       throw e;
     } else {
-      if (!_jwks.keys.runtimeType.toString().startsWith('JSArray')) {
+      if (!_jwks.keys.runtimeType.toString().startsWith('List')) {
         throw e;
       } else {
         this._jwks = value;
@@ -48,7 +48,13 @@ abstract class JWKS implements JWK {
     return this._jwks;
   }
 
-  /// Gat a single JWKey by its undex from the set
+  /// Get the List of JWKs
+  ///
+  getKeysAsList() {
+    return this._jwks.keys;
+  }
+
+  /// Get a single JWKey by its index from the set
   ///
   JWK getKeyByIndex(int index);
 

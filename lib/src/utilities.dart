@@ -30,82 +30,6 @@ class Utilities {
     }
   }
 
-  /// Verify JSON object
-  ///
-  /// This function is to support the JWT segments validation purpose only.
-  /// It will respect RFC8259 but not in any matter fully implement it.
-  ///
-  static bool validateSegmentToJSON(String segment) {
-    /// Private function to verify if string value converts well to int or double.
-    bool _isNum(String source) {
-      try {
-        num.parse(source);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    // Verify if the value provided satisfy minimum requirements
-    if (segment.isEmpty || segment.trim().length < 7) {
-      throw Exception('Invalid segment string length!');
-    }
-
-    // Verify the segment value is properlly noteted as per requiremnts
-    if (segment.trim().startsWith("{") && segment.trim().endsWith("}")) {
-      // Remove first and last chars from the segment string
-      var segmentBody = segment.trim().substring(1, segment.trim().length);
-      segmentBody = segmentBody.substring(0, segmentBody.trim().length - 1);
-
-      // Verify body of the segment string has at least 1 (one) (k,v) pair.
-      final List<String> bodyParts = segmentBody.trim().split(',');
-
-      if (bodyParts.isNotEmpty && bodyParts.length > 0) {
-        // Verify if each part consists from a colon(:) splited,
-        // correctly formatted keys and values.
-        bodyParts.forEach((element) {
-          try {
-            final List<String> kv = element.split(RegExp(r":(?!//)"));
-            if (kv.isNotEmpty && kv.length == 2) {
-              kv.forEach((node) {
-                // Verify if each node of (K,V) pair meets at least one of the
-                // conditions from the below list:
-                // * surrounded by: "", [] or {}
-                // * null, false or true
-                // * is [int] or [double] runtimeType
-                if (node == 'false' ||
-                    node == 'true' ||
-                    node == 'null' ||
-                    _isNum(node) ||
-                    (node.startsWith("[") && node.endsWith("]")) ||
-                    (node.startsWith("{") && node.endsWith("}")) ||
-                    (node.startsWith("\"") && node.endsWith("\""))) {
-                  // do nothing
-                } else {
-                  throw Exception('Invalid quotation of keys or values!');
-                }
-              });
-            } else {
-              print(element);
-              print(kv);
-              throw Exception('Invalid key-value pair in the segment value!');
-            }
-          } catch (e) {
-            rethrow;
-          }
-        });
-        // -=- -=- Return verification confirmation -=- -=-
-        return true;
-
-        // -=- -=-
-      } else {
-        throw Exception('Invalid segment body content!');
-      }
-    } else {
-      throw Exception('Invalid segment format!');
-    }
-  }
-
   /// Get Object Data tool
   ///
   /// [what] parameter defines if the method will return object's fields or methods
@@ -149,17 +73,17 @@ class Utilities {
   /// cache refreshing mechanism for expired values
   ///
   static Future<RSAPublicKey> getJWK(String jwks, String kid) async {
-    // TODO: [JWT-3] implement get JWK
-    // Simulating get keys as json from the API
-    Map<String, dynamic> keys = json.decode(
-        "{\"keys\":[{\"e\":\"AQAB\",\"n\":\"4_Ipw_yzV3OB1fS4ngnnH2cRDy7dZTBP8TEaqJiILHve3P2Z6NSgTr9dbLCUXjO-pwt6t_dMs2oVPDfpM8I-10g9cO-gcPA5QTzTKcHoned0B9p8jzEEvSDBlej1qH0-SgJMooQrbJXHjatF4TiAOTCFT-yRwPbcar0QYhvUWNV52xjEvj4yDnmK42y819LY7Hy-Gkzky4iV9mjf6qEFmlxTjSdqxuQo0Y68YHJZLGSx3rQmNzYt0XY8So3aGKXz_v4mMHkZl62mQGx5U_80LmB-3j6WjIJXilJmj1pbMU6Cp6sWjA9pTgAxF5LDzxplXpjQas33vsJ5n1xsmGxpow\",\"alg\":\"RS256\",\"kty\":\"RSA\",\"use\":\"sig\",\"kid\":\"f092b612e9b6447deb10685bb8ffa8ae62f6aa91\"},{\"alg\":\"RS256\",\"use\":\"sig\",\"n\":\"vjjZdBjWDVibe5f02VSd3U8gqGzjnGL7ZTMUZMxzeYMH14sTm99eGJoFFuP6b0ti-VHTbdUc88jNe9KY7cfoihvTS7ZIjzwyGUq2ThV5fsWo0gYZwnKbLz0QyAXIi7U89zDEud8K8GIq4mK1Q1kcXFsjN9pa59qMthjVHMUBJGQRqH22mzxc0JhkBMs4ElG1UHMyCnDcTAFHw30c7iE6uTXBATtNIkLzUy1X5hLnKW00JqD-L20bsXOAP-_7yGkpSEvvaxroeBm58JHUNhvWklvsK4S-Dh8Lm917apNSCWumfDQ6plBJrhRI3tQl9k06ZfayRf-46y7DarZP7FJOqQ\",\"kid\":\"d946b137737b973738e5286c208b66e7a39ee7c1\",\"kty\":\"RSA\",\"e\":\"AQAB\"}]}");
+    // Convert the string of jwks to json. The string have been verified in
+    // previous steps of the main function.
+    Map<String, dynamic> json_keys = json.decode(jwks);
 
-    // Extract the JWK
     try {
-      IvmRS256JWK theKey = IvmRS256JWK.fromJson(keys['keys'][0]);
-      return _publicKey(theKey);
+      // Instantiate the JWKS object
+      IvmRS256JWKS _jwks = IvmRS256JWKS.fromJson(json_keys);
+      IvmRS256JWK key = _jwks.getKeyByKid(kid);
+      return _publicKey(key);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
