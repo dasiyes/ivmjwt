@@ -33,6 +33,7 @@ part 'src/jwk/ivm_jwks.dart';
 part 'src/ivm_jwt.dart';
 part 'src/verifyJWT/ivm_check_integrity.dart';
 part 'src/verifyJWT/ivm_check_signature.dart';
+part 'src/verifyJWT/ivm_check_claims.dart';
 // ----
 
 part 'ivmjwt.g.dart';

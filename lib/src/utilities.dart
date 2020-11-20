@@ -164,4 +164,16 @@ class Utilities {
     }
     return result;
   }
+
+  /// Seconds/miliseconds since EPOCH
+  ///
+  /// @param String measure - default to "s", defines the measure of the returned result. Accepts "s" for seconds or "ms" for miliseconds.
+  ///
+  static int currentTimeInSMS({String measure = 's'}) {
+    final ms = DateTime.now().millisecondsSinceEpoch;
+    if (measure == 'ms') {
+      return ms;
+    }
+    return (ms / 1000).round();
+  }
 }

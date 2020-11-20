@@ -29,15 +29,15 @@ class IvmJWT extends JWT {
   /// [jwks] is expected key set containing the public key that signed the token. The string content should represent a valid json object.
   static Future<Map<String, dynamic>> verifyJWTRS256(
       String token, String jwks) async {
-    // Verified Segment Header
+    /// Verification proprties
     SegmentHeader vSegHeader;
     SegmentPayload vSegPayload;
     bool validAlg = false;
     bool validJWKS = false;
+    bool validSignature = false;
+    bool timeValid = false;
 
-    Map<String, dynamic> result = {
-      "message": "you have to wait for your token validation! :)"
-    };
+    Map<String, dynamic> result = {"message": "invalid token!"};
 
     // Step-1 Check the token integrity
     final _integrity = await _checkTokenIntegrity(token);
@@ -80,21 +80,12 @@ class IvmJWT extends JWT {
     try {
       final jv = JsonValidator(jwks);
       validJWKS = jv.validate();
-      print('validJWKS: $validJWKS');
     } catch (e) {
       throw Exception('Error validating to json the provided JWKs value! $e.');
     }
 
-    // Signature verification result prep
-    bool _signature = false;
-
-    // TODO: JWT-1 Implement signature check ...
     // Step-2 Check the signature
     if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS) {
-      // trigger verification step-2 here...
-      print(
-          "alg: ${vSegHeader.alg} and payload: ${vSegPayload.iss}, email: ${vSegPayload._properties['email']}");
-
       /// [header] the token header string
       /// [payload] the token payload
       /// [token] the original token value supplied to this function
@@ -102,7 +93,7 @@ class IvmJWT extends JWT {
       /// [jwks] set of keys to get the public key from it.
       /// [kid] is the key id that will be used to identify the exact JWK from the set.
       ///
-      _signature = await _verifyRS256Signature(
+      validSignature = await _verifyRS256Signature(
           header: _integrity['header'],
           payload: _integrity['payload'],
           token: token,
@@ -114,11 +105,31 @@ class IvmJWT extends JWT {
     }
 
     // Step-3: Verify the token time validity: exp and if exist iat & nbf
-    // Optionally verify iss for existance.
-    print('signature verification: $_signature');
-    // ...
+    if (vSegHeader != null &&
+        vSegPayload != null &&
+        validAlg &&
+        validJWKS &&
+        validSignature) {
+      // Verifies the exp part of the token payload segment with now().
+      // 180 seconds will be added to now() value as further processing time
+      // to ensure the token validity in the next 3 minutes
+      timeValid = await _verifyClaims(vSegPayload);
+      // ...
+    } else {
+      throw Exception('The token claims verification not possible!');
+    }
 
-    // Supposed to be the decoded JWT
+    /// Finally return the token claims
+    if (vSegHeader != null &&
+        vSegPayload != null &&
+        validAlg &&
+        validJWKS &&
+        validSignature &&
+        timeValid) {
+      /// The claims value of the token as Dart's JSON representation Map<String,dynamic>>
+      result = vSegPayload.toJson();
+    }
+
     return result;
   } // end of verifyJWTRS256
 }
