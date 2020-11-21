@@ -14,6 +14,7 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:uuid_type/uuid_type.dart';
 
 // The JWT
 part 'src/jwt/jwt.dart';
