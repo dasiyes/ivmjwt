@@ -59,12 +59,17 @@ class IvmGenerateKP {
 
   /// Trigger the generation and get the pair
   ///
+  /// This method will generate a new key pair from the the same instance of the
+  /// class. The pair will have a new key id but the same bit strength define
+  /// in the class instantiation.
+  ///
   void generateAPair() {
+    this._kid = Uuid.nil;
     this._pair = _generateRSAKeyPair(_ivmSecureRandom(),
         bitStrength: ivmBitStrength ?? 2048);
   }
 
-  get keyPair {
+  AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> get keyPair {
     if (this._pair == null) {
       generateAPair();
       return this._pair;
@@ -72,21 +77,21 @@ class IvmGenerateKP {
     return this._pair;
   }
 
-  get publicKey {
+  RSAPublicKey get publicKey {
     if (this._pair == null) {
       generateAPair();
     }
     return this._pair.publicKey;
   }
 
-  get privateKey {
+  RSAPrivateKey get privateKey {
     if (this._pair == null) {
       generateAPair();
     }
     return this._pair.privateKey;
   }
 
-  get kid {
+  Uuid get kid {
     if (this._pair == null) {
       this._kid = Uuid.nil;
       return this._kid;

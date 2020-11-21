@@ -14,14 +14,23 @@ class IvmJWT extends JWT {
   String token;
 
   @override
-  void issueJWTRS256() {
-    /// TODO: research where to start from ...
-    ///
+  void sign() {
+    // TODO: implement sign
   }
 
   @override
-  void sign() {
-    // TODO: implement sign
+  void issueJWTRS256() {
+    /// 1. Generate key pair
+    ///
+    /// 2. Build the dataToSign bytes list from the provided in paramaters
+    /// header and payload segments.
+    ///
+    /// 3. Use function [sign] to sign the segments data with the private key
+    /// from step-1.
+    ///
+    /// 4. Compose the 3 segments of the JWToken as Base64 string separated
+    /// with comma (.)
+    ///
   }
 
   /// Verify JWT RS256 signed token

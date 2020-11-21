@@ -39,6 +39,8 @@ part 'src/verifyJWT/ivm_check_claims.dart';
 
 // The ivmJWT - issue
 part 'src/rsa/ivm_generate_keys.dart';
+part 'src/rsa/ivm_signer.dart';
+part 'src/rsa/ivm_verifier.dart';
 // ----
 
 part 'ivmjwt.g.dart';
