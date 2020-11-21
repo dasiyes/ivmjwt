@@ -51,28 +51,15 @@ Future<bool> _verifyRS256Signature(
         Uint8List.fromList(headerData + sep + payloadData);
 
     // return the result of Verify the signature
-    return _rsaVerify(_usePKey, signedData, u8lOrgSignature);
+    try {
+      IvmVerifierRSA256 ivmVerifier =
+          IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
+      return ivmVerifier.verifyRS256();
+    } catch (e) {
+      throw e;
+    }
   } else {
     throw Exception('Invalid signature verification algorithm selected!');
-  }
-}
-
-// PointyCastle library example function.
-// Using it for verifying the signature segment of RS2356 signed JWT token.
-//
-bool _rsaVerify(
-    RSAPublicKey publicKey, Uint8List signedData, Uint8List signature) {
-  final sig = RSASignature(signature);
-
-  final verifier = RSASigner(SHA256Digest(), '0609608648016503040201');
-
-  verifier.init(
-      false, PublicKeyParameter<RSAPublicKey>(publicKey)); // false=verify
-
-  try {
-    return verifier.verifySignature(signedData, sig);
-  } on ArgumentError {
-    return false; // for Pointy Castle 1.0.2 when signature has been modified
   }
 }
 
