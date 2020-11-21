@@ -6,7 +6,7 @@
 library ivmjwt;
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
@@ -27,13 +27,17 @@ part 'src/jwk/jwk.dart';
 part 'src/jwk/ivm_jwk.dart';
 part 'src/jwk/jwks.dart';
 part 'src/jwk/ivm_jwks.dart';
-//---
+//----
 
-// The ivmJWT
+// The ivmJWT - verify
 part 'src/ivm_jwt.dart';
 part 'src/verifyJWT/ivm_check_integrity.dart';
 part 'src/verifyJWT/ivm_check_signature.dart';
 part 'src/verifyJWT/ivm_check_claims.dart';
+// ----
+
+// The ivmJWT - issue
+part 'src/rsa/ivm_generate_keys.dart';
 // ----
 
 part 'ivmjwt.g.dart';
