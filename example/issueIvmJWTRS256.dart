@@ -6,6 +6,7 @@ import 'package:pointycastle/pointycastle.dart';
 Future<String> main() async {
   String result = "ivmJWToken here...";
 
+  /// Generate key pair; bitStrength 1024, 2048[default], 4096
   IvmGenerateKP ivmkp = IvmGenerateKP(ivmBitStrength: 1028);
 
   ivmkp.generateAPair();

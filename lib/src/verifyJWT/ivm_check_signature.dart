@@ -41,19 +41,15 @@ Future<bool> _verifyRS256Signature(
     final Uint8List u8lOrgSignature =
         base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-    final Uint8List sep = utf8.encode('.');
-    final Uint8List headerData =
-        base64Url.decode(base64Url.normalize(tokenSegments[0]));
-    final Uint8List payloadData =
-        base64Url.decode(base64Url.normalize(tokenSegments[1]));
-
-    final Uint8List signedData =
-        Uint8List.fromList(headerData + sep + payloadData);
+    String hd = await Utilities.base64UrlDecode(tokenSegments[0]);
+    String pd = await Utilities.base64UrlDecode(tokenSegments[1]);
+    Uint8List signedData = utf8.encode("${hd}.${pd}");
 
     // return the result of Verify the signature
     try {
       IvmVerifierRSA256 ivmVerifier =
           IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
+      print(ivmVerifier.verifyRS256());
       return ivmVerifier.verifyRS256();
     } catch (e) {
       throw e;

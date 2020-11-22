@@ -36,6 +36,7 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   ///
   try {
     jwtHeader = await Utilities.base64UrlDecode(tokenSegments[0]);
+    print(jwtHeader);
   } catch (e) {
     throw Exception('Error decoding header segment! $e.');
   }

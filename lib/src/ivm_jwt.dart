@@ -5,22 +5,10 @@ part of '../ivmjwt.dart';
 /// The Ivmanto`s implementation of JWT
 ///
 class IvmJWT extends JWT {
-  // Verify and decode properties
-  // JWK key;
-  // SegmentHeader header;
-  // Map<String, dynamic> payload;
-  // String signature;
-  // String ivmToken;
-
   // The constructor
   IvmJWT();
 
-  @override
-  void _sign() {
-    // TODO: implement sign
-  }
-
-  /// Issue RS256 signed JWT
+  /// Issue RS256 signed JWT [RFC7519]
   ///
   /// This function will take as parameter the claims as payload of the
   /// future JWT in either one of formats:
@@ -30,20 +18,97 @@ class IvmJWT extends JWT {
   /// If both arguments are null - the function will throw exception
   /// 'Not suficient payload data provided!'.
   /// If both parameters are provided - the strClaims will be used.
-  @override
-  String issueJWTRS256([String strClaims, Map<String, dynamic> mapClaims]) {
+  Future<String> issueJWTRS256(
+      [String strClaims, Map<String, dynamic> mapClaims]) async {
+    String _claims;
+    // Throw exception when there is no suficient claims data
+    if ((strClaims == null && mapClaims == null) ||
+        (strClaims.isEmpty && mapClaims.isEmpty) ||
+        (strClaims.isEmpty && mapClaims == null) ||
+        (strClaims == null && mapClaims.isEmpty)) {
+      throw Exception('Insuficient payload!');
+    }
+
+    // If both parameters are provided - use the string claims
+    if ((strClaims != null && mapClaims != null) ||
+        (strClaims != null && mapClaims == null)) {
+      // cases to use [strClaims] param
+      JsonValidator jv = JsonValidator(strClaims);
+      if (jv.validate()) {
+        _claims = strClaims;
+      } else {
+        throw Exception('Invalid json format of the claim');
+      }
+    } else if (mapClaims != null && mapClaims.isNotEmpty) {
+      try {
+        _claims = json.encode(mapClaims);
+      } catch (e) {
+        throw Exception(
+            'Error raised while encoding the parameter mapClaims to json string! $e.');
+      }
+    }
+
     /// 1. Generate key pair
     ///
+    IvmGenerateKP ivmkp;
+    try {
+      ivmkp = IvmGenerateKP(ivmBitStrength: 2048);
+      ivmkp.generateAPair();
+    } catch (e) {
+      throw Exception('Error raised while generating key pair! $e.');
+    }
+
+    RSAPublicKey pubKey = ivmkp.publicKey;
+    RSAPrivateKey prvKey = ivmkp.privateKey;
+    Uuid kid = ivmkp.kid;
+
+    // <<<< ================ Converting key Pair key modulus and Exp ====== >>>>
+    print('kid: $kid');
+
+    String tmpE = utf8.decode(Utilities.encodeBigInt(pubKey.publicExponent));
+    print(tmpE);
+    String e = await Utilities.base64UrlEncode(tmpE);
+    print(e);
+
+    Uint8List i8 = Utilities.encodeBigInt(pubKey.modulus);
+    String tmpN = utf8.decode(i8);
+    print(tmpN);
+    String n = await Utilities.base64UrlEncode(tmpN);
+    print(n);
+
+    print('modulus n: ${n}');
+    print('expon e: ${e}');
+
+    // <<<< =============================================================== >>>>
+
     /// 2. Build the dataToSign bytes list from the provided in paramaters
     /// header and payload segments.
     ///
+    final String _header =
+        "{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}";
+
+    Uint8List dataToSign = utf8.encode("${_header}.${_claims}");
+    Uint8List signature;
+
     /// 3. Use function [sign] to sign the segments data with the private key
     /// from step-1.
     ///
+    IvmSignerRSA256 sign;
+    try {
+      sign = IvmSignerRSA256(prvKey, dataToSign);
+      signature = sign.signedBytes;
+    } catch (e) {
+      print(e);
+    }
+
     /// 4. Compose the 3 segments of the JWToken as Base64 string separated
     /// with comma (.)
     ///
-    return '';
+    String segment1 = await Utilities.base64UrlEncode(_header);
+    String segment2 = await Utilities.base64UrlEncode(_claims);
+    String segment3 = sign.getBase64Signature();
+
+    return '${segment1}.${segment2}.${segment3}';
   }
 
   /// Verify JWT RS256 signed token
