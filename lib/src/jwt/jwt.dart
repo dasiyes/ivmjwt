@@ -7,6 +7,7 @@ abstract class JWT extends Object {
   SegmentHeader header;
   Map<String, dynamic> payload;
   String signature;
+  String token;
 
   /// Registered claim names
   Map<String, dynamic> claim;
@@ -15,13 +16,23 @@ abstract class JWT extends Object {
   Map<String, dynamic> data;
 
   /// Create, RS256 sign and return new JWT
-  void issueJWTRS256();
+  String issueJWTRS256();
+
+  /// Signing the token
+  void _sign();
 
   /// Verify RS256 signed JWT. Unsigned token MUST NOT be verified.
-  static void verifyJWTRS256() {
-    // provide the JWT token String value
+  static Future<bool> _verifyJWTRS256(String token, String jwks) async {
+    return false;
   }
 
-  /// Signing the JWT with the used encryption method in the header
-  void sign();
+  /// decode the token payload and header and return it as json representation
+  static Future<Map<String, dynamic>> decodeJWTRS256(
+      String token, String jwks) async {
+    Map<String, dynamic> result = {};
+    if (await _verifyJWTRS256(token, jwks)) {
+      return result;
+    }
+    return null;
+  }
 }

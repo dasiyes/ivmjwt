@@ -5,21 +5,33 @@ part of '../ivmjwt.dart';
 /// The Ivmanto`s implementation of JWT
 ///
 class IvmJWT extends JWT {
+  // Verify and decode properties
+  // JWK key;
+  // SegmentHeader header;
+  // Map<String, dynamic> payload;
+  // String signature;
+  // String ivmToken;
+
+  // The constructor
   IvmJWT();
 
-  JWK key;
-  SegmentHeader header;
-  Map<String, dynamic> payload;
-  String signature;
-  String token;
-
   @override
-  void sign() {
+  void _sign() {
     // TODO: implement sign
   }
 
+  /// Issue RS256 signed JWT
+  ///
+  /// This function will take as parameter the claims as payload of the
+  /// future JWT in either one of formats:
+  /// [strClaims] - a string that can be verified to a JSON object
+  /// or
+  /// [mapClaims] - the dart's representation of a JSON object
+  /// If both arguments are null - the function will throw exception
+  /// 'Not suficient payload data provided!'.
+  /// If both parameters are provided - the strClaims will be used.
   @override
-  void issueJWTRS256() {
+  String issueJWTRS256([String strClaims, Map<String, dynamic> mapClaims]) {
     /// 1. Generate key pair
     ///
     /// 2. Build the dataToSign bytes list from the provided in paramaters
@@ -31,14 +43,15 @@ class IvmJWT extends JWT {
     /// 4. Compose the 3 segments of the JWToken as Base64 string separated
     /// with comma (.)
     ///
+    return '';
   }
 
   /// Verify JWT RS256 signed token
   ///
   /// This method will verify JWT [token] signed with RS256 algorithm.
   /// [jwks] is expected key set containing the public key that signed the token. The string content should represent a valid json object.
-  static Future<Map<String, dynamic>> verifyJWTRS256(
-      String token, String jwks) async {
+  ///
+  static Future<bool> _verifyJWTRS256(String token, String jwks) async {
     /// Verification proprties
     SegmentHeader vSegHeader;
     SegmentPayload vSegPayload;
@@ -46,8 +59,6 @@ class IvmJWT extends JWT {
     bool validJWKS = false;
     bool validSignature = false;
     bool timeValid = false;
-
-    Map<String, dynamic> result = {"message": "invalid token!"};
 
     // Step-1 Check the token integrity
     final _integrity = await _checkTokenIntegrity(token);
@@ -124,22 +135,41 @@ class IvmJWT extends JWT {
       // 180 seconds will be added to now() value as further processing time
       // to ensure the token validity in the next 3 minutes
       timeValid = await _verifyClaims(vSegPayload);
-      // ...
     } else {
       throw Exception('The token claims verification not possible!');
     }
 
-    /// Finally return the token claims
-    if (vSegHeader != null &&
+    return (vSegHeader != null &&
         vSegPayload != null &&
         validAlg &&
         validJWKS &&
         validSignature &&
-        timeValid) {
-      /// The claims value of the token as Dart's JSON representation Map<String,dynamic>>
-      result = vSegPayload.toJson();
-    }
-
-    return result;
+        timeValid);
   } // end of verifyJWTRS256
+
+  /// Decode RS256 signed JWT
+  ///
+  /// Decoding of the token payload MUST go over validation phase first
+  ///
+  static Future<Map<String, dynamic>> decodeJWTRS256(
+      String token, String jwks) async {
+    if (await _verifyJWTRS256(token, jwks)) {
+      Map<String, dynamic> decodedPayload;
+
+      /// decode payload
+      try {
+        // Split the token to segments
+        final List<String> tokenSegments = token.split('.');
+        final String jwtPayload =
+            await Utilities.base64UrlDecode(tokenSegments[1]);
+        decodedPayload = json.decode(jwtPayload);
+      } catch (e) {
+        throw Exception('Error decoding payload segment! $e.');
+      }
+      // TODO: consider to combine the header segment as part of the payload?
+      return decodedPayload ?? {};
+    } else {
+      return null;
+    }
+  }
 }

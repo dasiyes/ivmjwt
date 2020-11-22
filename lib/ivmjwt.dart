@@ -6,15 +6,16 @@
 library ivmjwt;
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
-// import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid_type/uuid_type.dart';
+import 'package:ivmjv/ivmjv.dart';
 
 // The JWT
 part 'src/jwt/jwt.dart';
@@ -46,4 +47,3 @@ part 'src/rsa/ivm_verifier.dart';
 part 'ivmjwt.g.dart';
 
 part 'src/utilities.dart';
-part 'src/jsonValidator/jvalid.dart';
