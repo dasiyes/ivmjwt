@@ -1,5 +1,5 @@
 # ivmJWT library
-## Handling JWT in Dart
+## Handling JWT
 
 
 * in development of v.0.1.0 [WIP]
