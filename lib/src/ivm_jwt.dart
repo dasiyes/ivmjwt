@@ -63,21 +63,27 @@ class IvmJWT extends JWT {
     Uuid kid = ivmkp.kid;
 
     // <<<< ================ Converting key Pair key modulus and Exp ====== >>>>
-    print('kid: $kid');
+    print('pubKey: ${pubKey.toString()}');
 
-    String tmpE = utf8.decode(Utilities.encodeBigInt(pubKey.publicExponent));
+    String tmpE = latin1.decode(Utilities.writeBigInt(pubKey.publicExponent));
     print(tmpE);
     String e = await Utilities.base64UrlEncode(tmpE);
     print(e);
 
-    Uint8List i8 = Utilities.encodeBigInt(pubKey.modulus);
-    String tmpN = utf8.decode(i8);
-    print(tmpN);
-    String n = await Utilities.base64UrlEncode(tmpN);
+    print(
+        'modulus length: ${pubKey.modulus.bitLength}, octets: ${pubKey.modulus.bitLength / 8}');
+    print('modulus: ${pubKey.modulus}');
+
+    Uint8List i8 = Utilities.writeBigInt(pubKey.modulus);
+    // String tmpN = latin1.decode(i8);
+    // print(tmpN);
+    // String n = await Utilities.base64UrlEncode(tmpN);
+    String n = base64Url.encode(i8);
     print(n);
 
-    print('modulus n: ${n}');
-    print('expon e: ${e}');
+    print('kid: \n\n $kid');
+    print('modulus n: \n\n${n}');
+    print('expon e: \n\n${e}');
 
     // <<<< =============================================================== >>>>
 
@@ -87,7 +93,7 @@ class IvmJWT extends JWT {
     final String _header =
         "{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}";
 
-    Uint8List dataToSign = utf8.encode("${_header}.${_claims}");
+    Uint8List dataToSign = latin1.encode("${_header}.${_claims}");
     Uint8List signature;
 
     /// 3. Use function [sign] to sign the segments data with the private key
@@ -104,8 +110,8 @@ class IvmJWT extends JWT {
     /// 4. Compose the 3 segments of the JWToken as Base64 string separated
     /// with comma (.)
     ///
-    String segment1 = await Utilities.base64UrlEncode(_header);
-    String segment2 = await Utilities.base64UrlEncode(_claims);
+    String segment1 = await Utilities.base64UrlEncode(_header, true);
+    String segment2 = await Utilities.base64UrlEncode(_claims, true);
     String segment3 = sign.getBase64Signature();
 
     return '${segment1}.${segment2}.${segment3}';

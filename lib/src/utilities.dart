@@ -5,13 +5,17 @@ part of '../ivmjwt.dart';
 class Utilities {
   /// Decodes Base64Url encoded strings
   /// [encodedString] the string in Base64 format
-  static Future<String> base64UrlDecode(String encodedString) async {
+  static Future<String> base64UrlDecode(String encodedString,
+      [bool decodeL1 = false]) async {
     // Decode in List of integers. Note: base64 normalization required!
     final Uint8List encIntList =
         await base64Url.decode(base64.normalize(encodedString));
 
     // Decode in UTF string
     try {
+      if (decodeL1) {
+        return latin1.decode(encIntList);
+      }
       return utf8.decode(encIntList, allowMalformed: false);
     } catch (e) {
       rethrow;
@@ -20,11 +24,16 @@ class Utilities {
 
   /// Encoding to Base64 String
   /// [source] is the string to be encoded in Base64
-  static Future<String> base64UrlEncode(String source) async {
+  static Future<String> base64UrlEncode(String source,
+      [bool encodeL1 = false]) async {
     try {
-      final Uint8List bytes = utf8.encode(source);
-      String base64Str = base64Url.encode(bytes);
-      return base64Str;
+      Uint8List bytes;
+      if (encodeL1) {
+        bytes = latin1.encode(source);
+      } else {
+        bytes = utf8.encode(source);
+      }
+      return base64Url.encode(bytes);
     } catch (e) {
       rethrow;
     }

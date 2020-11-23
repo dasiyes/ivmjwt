@@ -28,7 +28,10 @@ Future<bool> _verifyRS256Signature(
   //
   try {
     // print('[_verifyRS256Signature] jwks: $jwks, kid: $kid');
+    print('jwks: $jwks');
     _usePKey = await Utilities.getJWK(jwks, kid);
+    print('get _usePKey: ${_usePKey.modulus}');
+    print('_usePKey.bitLength: ${_usePKey.modulus.bitLength}');
   } catch (e) {
     throw Exception(
         'Unable to acquire public key for signature verification! $e.');
@@ -41,9 +44,9 @@ Future<bool> _verifyRS256Signature(
     final Uint8List u8lOrgSignature =
         base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-    String hd = await Utilities.base64UrlDecode(tokenSegments[0]);
-    String pd = await Utilities.base64UrlDecode(tokenSegments[1]);
-    Uint8List signedData = utf8.encode("${hd}.${pd}");
+    String hd = await Utilities.base64UrlDecode(tokenSegments[0], true);
+    String pd = await Utilities.base64UrlDecode(tokenSegments[1], true);
+    Uint8List signedData = latin1.encode("${hd}.${pd}");
 
     // return the result of Verify the signature
     try {

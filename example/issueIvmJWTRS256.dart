@@ -16,7 +16,7 @@ Future<String> main() async {
   Uint8List signature;
 
   try {
-    IvmSignerRSA256 sign = IvmSignerRSA256(prvKey, utf8.encode(dataToSign));
+    IvmSignerRSA256 sign = IvmSignerRSA256(prvKey, latin1.encode(dataToSign));
     signature = sign.signedBytes;
     print(signature);
     print(sign.getBase64Signature());
@@ -24,7 +24,7 @@ Future<String> main() async {
     print(e);
   }
 
-  Uint8List pSignedData = utf8.encode('.');
+  Uint8List pSignedData = latin1.encode('.');
 
   try {
     IvmVerifierRSA256 verifier =

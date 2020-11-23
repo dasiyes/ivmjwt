@@ -44,6 +44,7 @@ class IvmGenerateKP {
         ivmPublic, ivmPrivate);
   }
 
+  // The entire function is from PointyCastle example
   SecureRandom _ivmSecureRandom() {
     final secureRandom = FortunaRandom();
 
