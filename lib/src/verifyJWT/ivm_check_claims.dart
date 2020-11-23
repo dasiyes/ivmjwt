@@ -6,6 +6,9 @@ part of '../../ivmjwt.dart';
 ///
 Future<bool> _verifyClaims(SegmentPayload claims) async {
   bool result = false;
+  if (claims.exp == null) {
+    return result;
+  }
 
   int exp = claims.exp;
   int nbf = claims.nbf ?? 0;

@@ -75,38 +75,6 @@ class Utilities {
     return result;
   }
 
-  /// Retrive JWK from external API
-  ///
-  /// Need preliminary configured API to receive the JWK data. In case where
-  /// the key values are rotated on regular base, this method will provide
-  /// cache refreshing mechanism for expired values
-  ///
-  static Future<RSAPublicKey> getJWK(String jwks, String kid) async {
-    // Convert the string of jwks to json. The string have been verified in
-    // previous steps of the main function.
-    Map<String, dynamic> json_keys = json.decode(jwks);
-
-    try {
-      // Instantiate the JWKS object
-      IvmRS256JWKS _jwks = IvmRS256JWKS.fromJson(json_keys);
-      IvmRS256JWK key = _jwks.getKeyByKid(kid);
-      return _publicKey(key);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Private function to compose RSAPublicKey to use for signature verification
-  static RSAPublicKey _publicKey(IvmRS256JWK keySet) {
-    Uint8List _eBytes = base64Url.decode(base64Url.normalize(keySet.e));
-    Uint8List _nBytes = base64Url.decode(base64Url.normalize(keySet.n));
-
-    final BigInt modulus = readBytes(_nBytes);
-    final BigInt exponent = readBytes(_eBytes);
-
-    return RSAPublicKey(modulus, exponent);
-  }
-
   // << =========/*  dart-lang/sdk team examples functions */================ >>
 
   /// Reads Uint8List array into a BigInt.

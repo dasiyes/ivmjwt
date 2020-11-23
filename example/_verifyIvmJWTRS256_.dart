@@ -1,13 +1,13 @@
 import 'package:ivmjwt/ivmjwt.dart';
 
-void main() {
+void main() async {
   String token =
-      "eyJhbGciOiAiUlMyNTYiLCAidHlwIjogIkpXVCIsICJraWQiOiAiNmJlMjg5ZGYtMmRiMy0xMWViLThmZGMtZTllMzU5ZTg5ZDM2In0=.eyJpc3MiOiAiSXZtYW50by5jb20ifQ==.SBs2CKrI7Eezg0YJSM0Tc88LsvQCgQYClMBEeIHhrgxlUaTCiZlL6VM5JS0_DhQYWCm6BfYt5FWCrmiqGE6NCZlzQjqoaC50N6vRlZqyl7QhEQPHqPPByDLTnx39Nl-PAJ6HsMHkLHVYFyWliYuipVvqD778-J_cOSt4wp4RItXEvKzn1LIJd26oJCSh3zR1slswnUOMGTAGoB68KNh4-POzIn_w3pvbVsNzp5oz_qfrDaysYC56LqnBTKYJasLP6qmrm3UJbo8CDTVE2atHsTfM-MxLB1Nt0NKtrw9_Um95WwvCmX6jytYIl9Jedb1AO6rG-oyzefN9JPgtucmNnw==";
+      "eyJhbGciOiAiUlMyNTYiLCAidHlwIjogIkpXVCIsICJraWQiOiAiM2Q1YmI4NjktMmRkOS0xMWViLTgzZTEtOWQ4ZjcwOGYxMjFiIn0=.eyJpc3MiOiAiSXZtYW50by5jb20iLCAiZXhwIjogMTYwNjQ2OTY2Mn0=.f0tMzH1AZK6aAXJGsJyQknGRY_jxoFg83A-ardTe896WppEgTqIeG4pT06m3ywRw6Gub_6uypS94PstvCvUokNLeRS1C5Tx-mscwKjKtEVjnwdgLWV00mgWGUrdyMvWXvwYblPcfSLEVvPPAomEjG5BVVSlBEfBd4nuMwRQBvxYPrGe5lScN45Ai1_z48IP2pXVnXyoKvKxz0l2ranUfKQrCpf4nJttih02hp30jJ_WD8ja8hWkcUPbxMXFOpw7aP78hQZFD5L27YbWpYjZCWQc8SVYBJN_8ECvQ5yjOiTLDNRpbSlz4iUFS8JiO3LGTdrRjqSQxYI0FoyfC30BdoQ==";
 
   String jwks =
-      "{\"keys\":[{\"alg\":\"RS256\",\"use\":\"sig\",\"n\":\"6VUDbUZRLLIGeLDMf1PuAWReUedoVfQOC-07qsqlPkR0eycEaW3GWtBclLcXiTMkARcqUu38joFQVwcfa2Ik2lTE0p-OibwlQddZJo05wwZIMHwqYy94LPkfi3bl3s2OJCzPKbIJq4lz0551pnNBdwNYDlQOCgV0o5VErfxaFbKwpvsaDq_KH7hE-JjdbBgluIlqN63cOTpz5dzvNixEqxrUK2AlHeHfHH7l9B0UwYi-EnIUC5gYaWUB5wghnVY6wMcNRZQYqxot4ZP71qrf2dyFscXEvRykpmqsaolhsAVJKWIf5c60uB4cIV9ZE-6DaXMKss-pJGpUbx-2lbrogA==\",\"kid\":\"6be289df-2db3-11eb-8fdc-e9e359e89d36\",\"kty\":\"RSA\",\"e\":\"AQAB\"}]}";
+      "{\"keys\":[{\"alg\":\"RS256\",\"use\":\"sig\",\"n\":\"BaunotoPYsGs5Ez8aEfU4VjVQbDONG05B3aB2wH24ExbRM4D40AujAwC-GhADbtB9wdzTQTNG1ZWgPWIPTKf-bwaOG__55-DTVXa08B_4A6BtyiGnmgRG5T1ThXA453bz9Tmp_6-_2gjcNGYwKgV6xwO1i69nWismWecwSY2ynTStfBi6ZHHubpILJQwIvxO6ITkIR1WjsUUA0FMlO6NpBmKbYjZ-q9XUl4e0ibnT_vLlVMv0jkUqRNh89wNWXPqs6DM4qq-XQbjIxRpmxEtW4jCq9lUBEzwmXx3Cd5CvghfNxMxGfkpt6p2_dxLEbI8XxyZ8IO29zwe-OuF9EMxpA==\",\"kid\":\"3d5bb869-2dd9-11eb-83e1-9d8f708f121b\",\"kty\":\"RSA\",\"e\":\"AQAB\"}]}";
 
-  var res = IvmJWT.decodeJWTRS256(token, jwks);
+  var res = await IvmJWT.decodeJWTRS256(token, jwks);
 
-  print(res);
+  print('res: $res');
 }

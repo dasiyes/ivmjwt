@@ -55,6 +55,18 @@ class IvmRS256JWK extends JWK {
 
   factory IvmRS256JWK.fromJson(Map<String, dynamic> json) =>
       _IvmRS256JWKFromJson(json);
+
+  /// Extract the public key from JWK json format as RSAPublicKey
+  ///
+  RSAPublicKey getRSAPublicKey() {
+    Uint8List _eBytes = base64Url.decode(base64Url.normalize(this.e));
+    Uint8List _nBytes = base64Url.decode(base64Url.normalize(this.n));
+
+    final BigInt modulus = Utilities.readBytes(_nBytes);
+    final BigInt exponent = Utilities.readBytes(_eBytes);
+
+    return RSAPublicKey(modulus, exponent);
+  }
 }
 
 /// Factory method to load JWK from json object

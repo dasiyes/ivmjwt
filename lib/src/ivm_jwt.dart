@@ -64,22 +64,15 @@ class IvmJWT extends JWT {
 
     // <<<< ================ Converting key Pair key modulus and Exp ====== >>>>
     print('pubKey: ${pubKey.toString()}');
-
-    String tmpE = latin1.decode(Utilities.writeBigInt(pubKey.publicExponent));
-    print(tmpE);
-    String e = await Utilities.base64UrlEncode(tmpE);
-    print(e);
+    String e = base64Url.encode(Utilities.writeBigInt(pubKey.publicExponent));
+    print('e: $e');
 
     print(
         'modulus length: ${pubKey.modulus.bitLength}, octets: ${pubKey.modulus.bitLength / 8}');
     print('modulus: ${pubKey.modulus}');
 
-    Uint8List i8 = Utilities.writeBigInt(pubKey.modulus);
-    // String tmpN = latin1.decode(i8);
-    // print(tmpN);
-    // String n = await Utilities.base64UrlEncode(tmpN);
-    String n = base64Url.encode(i8);
-    print(n);
+    String n = base64Url.encode(Utilities.writeBigInt(pubKey.modulus));
+    print('n: $n');
 
     print('kid: \n\n $kid');
     print('modulus n: \n\n${n}');
@@ -93,7 +86,9 @@ class IvmJWT extends JWT {
     final String _header =
         "{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}";
 
-    Uint8List dataToSign = latin1.encode("${_header}.${_claims}");
+    Uint8List dataToSign =
+        Uint8List.fromList(("${_header}.${_claims}").codeUnits);
+    // Uint8List dataToSign = latin1.encode("${_header}.${_claims}");
     Uint8List signature;
 
     /// 3. Use function [sign] to sign the segments data with the private key
@@ -210,6 +205,8 @@ class IvmJWT extends JWT {
       throw Exception('The token claims verification not possible!');
     }
 
+    print(
+        '_verifyJWTRS256 result: ${(vSegHeader != null && vSegPayload != null && validAlg && validJWKS && validSignature && timeValid)}');
     return (vSegHeader != null &&
         vSegPayload != null &&
         validAlg &&
@@ -218,10 +215,6 @@ class IvmJWT extends JWT {
         timeValid);
   } // end of verifyJWTRS256
 
-  /// Decode RS256 signed JWT
-  ///
-  /// Decoding of the token payload MUST go over validation phase first
-  ///
   static Future<Map<String, dynamic>> decodeJWTRS256(
       String token, String jwks) async {
     if (await _verifyJWTRS256(token, jwks)) {
