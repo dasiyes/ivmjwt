@@ -90,6 +90,8 @@ SegmentPayload _SegmentPayloadFromJson(Map<String, dynamic> jpld) {
     // if the key is not in the current Object
     if (!spFields.contains(key)) {
       sgp.fromElement({'$key': value.toString()});
+    } else {
+      sgp.fromElement({'$key': value});
     }
   });
 

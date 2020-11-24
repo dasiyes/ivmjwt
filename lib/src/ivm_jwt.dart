@@ -73,11 +73,10 @@ class IvmJWT extends JWT {
 
     // Get the public key as JWK
     final kpPublicKey = ivmkp.getPublicKeyAsJWK();
-    print('jwk public key: $kpPublicKey');
 
     // Get the public key as element of JWKS
-    final jwks = {'keys': [].add(kpPublicKey)};
-    print('jwks with single JWK: $jwks');
+    final arrayPK = <Map<String, dynamic>>[kpPublicKey];
+    final jwks = {'keys': arrayPK};
 
     /// 2. Build the dataToSign bytes list from the provided in paramaters
     /// header and payload segments.
@@ -85,7 +84,7 @@ class IvmJWT extends JWT {
     final _header =
         '{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}';
 
-    final _claimsStr = _claims.toJson().toString();
+    final _claimsStr = json.encode(_claims.toJson());
     final dataToSign = Uint8List.fromList('${_header}.${_claimsStr}'.codeUnits);
 
     /// 3. Use function [sign] to sign the segments data with the private key
@@ -109,7 +108,6 @@ class IvmJWT extends JWT {
       // <<<<
 
     } catch (e) {
-      print(e);
       throw Exception(
           'Error has raised while preparing and signing the token! $e.');
     }
@@ -156,6 +154,7 @@ class IvmJWT extends JWT {
         // ... set the Payload (claims) object to be sent to step-2 checking signature
         final payloadJson = json.decode(_integrity['payload'].toString())
             as Map<String, dynamic>;
+
         vSegPayload = SegmentPayload.fromJson(payloadJson);
       } catch (e) {
         throw Exception(
@@ -178,6 +177,7 @@ class IvmJWT extends JWT {
     }
 
     // Step-2 Check the signature
+
     if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS) {
       /// [header] the token header string
       /// [payload] the token payload
@@ -211,8 +211,6 @@ class IvmJWT extends JWT {
       throw Exception('The token claims verification not possible!');
     }
 
-    print(
-        '_verifyJWTRS256 result: ${vSegHeader != null && vSegPayload != null && validAlg && validJWKS && validSignature && timeValid}');
     return vSegHeader != null &&
         vSegPayload != null &&
         validAlg &&
