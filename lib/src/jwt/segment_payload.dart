@@ -9,13 +9,17 @@ class SegmentPayload implements RegisteredClaims {
   SegmentPayload(
       {this.iss, this.sub, this.aud, this.exp, this.nbf, this.iat, this.jti});
 
-  // Private properties map init
-  final _properties = new Map<String, Object>();
+  factory SegmentPayload.fromJson(Map<String, dynamic> json) =>
+      _SegmentPayloadFromJson(json);
+  Map<String, dynamic> toJson() => _SegmentPayloadToJson(this);
 
-  from(Map<String, Object> initial) {
+  void fromElement(Map<String, Object> initial) {
     initial.entries
         .forEach((element) => _properties[element.key] = element.value);
   }
+
+  // Private properties map init
+  final _properties = <String, Object>{};
 
   @override
   List<String> aud;
@@ -38,11 +42,9 @@ class SegmentPayload implements RegisteredClaims {
   @override
   String sub;
 
-  factory SegmentPayload.fromJson(Map<String, dynamic> json) =>
-      _SegmentPayloadFromJson(json);
-  Map<String, dynamic> toJson() => _SegmentPayloadToJson(this);
-
-  noSuchMethod(Invocation invocation) {
+  /// Customizing the class to support any custom fields/kyes in the payload
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isAccessor) {
       final realName = MirrorSystem.getName(invocation.memberName);
       if (invocation.isSetter) {
@@ -58,41 +60,43 @@ class SegmentPayload implements RegisteredClaims {
   }
 }
 
+// ignore: non_constant_identifier_names
 SegmentPayload _SegmentPayloadFromJson(Map<String, dynamic> jpld) {
-  // TODO: Debug for all possible cases of convertion of aud from Srtring into a list;
-  // Converting aud vlue to a list
-  List<String> audList = [];
-  if ((jpld['aud'].toString().startsWith('['))) {
+  // TODO: [dev] Debug for all possible cases of convertion of aud from Srtring into a list;
+  // Converting aud value to a list
+  var audList = <String>[];
+  if (jpld['aud'].toString().startsWith('[')) {
     audList = jpld['aud'] as List<String>;
   } else {
-    audList.add(jpld['aud']);
+    audList.add(jpld['aud'].toString());
   }
 
   // Instntiate the object
-  SegmentPayload sgp = SegmentPayload(
-    iss: jpld['iss'],
-    sub: jpld['sub'],
+  final sgp = SegmentPayload(
+    iss: jpld['iss'].toString(),
+    sub: jpld['sub'].toString(),
     aud: audList,
     exp: jpld['exp'] as int,
     nbf: jpld['nbf'] as int,
     iat: jpld['iat'] as int,
-    jti: jpld['jti'],
+    jti: jpld['jti'].toString(),
   );
 
   // Get the list of the object's properties
-  List<String> spFields = Utilities.getObjectDefNames(sgp, 'fields');
+  final spFields = Utilities.getObjectDefNames(sgp, 'fields');
 
   // Go over all json elements
   jpld.forEach((key, value) {
     // if the key is not in the current Object
     if (!spFields.contains(key)) {
-      sgp.from({'$key': value.toString()});
+      sgp.fromElement({'$key': value.toString()});
     }
   });
 
   return sgp;
 }
 
+// ignore: non_constant_identifier_names
 Map<String, dynamic> _SegmentPayloadToJson(SegmentPayload instance) {
   final val = <String, dynamic>{};
 

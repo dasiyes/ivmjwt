@@ -2,7 +2,7 @@ part of '../ivmjwt.dart';
 
 /// Ivmanto JWT
 ///
-/// The Ivmanto`s implementation of JWT
+/// The Ivmanto`s JWT class with issue and verify methods for RS256 signed tokens
 ///
 class IvmJWT extends JWT {
   // The constructor
@@ -10,17 +10,26 @@ class IvmJWT extends JWT {
 
   /// Issue RS256 signed JWT [RFC7519]
   ///
-  /// This function will take as parameter the claims as payload of the
-  /// future JWT in either one of formats:
-  /// [strClaims] - a string that can be verified to a JSON object
+  /// This function takes at least one of the two optional parameters:
+  /// [strClaims] - a string as a valid representation of a JSON object.
   /// or
-  /// [mapClaims] - the dart's representation of a JSON object
+  /// [mapClaims] - the dart's declaration of a JSON object.
+  ///
   /// If both arguments are null - the function will throw exception
-  /// 'Not suficient payload data provided!'.
-  /// If both parameters are provided - the strClaims will be used.
-  Future<String> issueJWTRS256(
+  /// 'Not sufficient payload data provided!'.
+  //
+  /// If both parameters are available, the function will use [strClaims]
+  /// as a prefered option.
+  ///
+  /// The function will auto-generate the key-pair and return it alongside
+  /// with the new issued JWToken. Later on, you can use it to acquire the
+  /// private and the public keys used for the signing and verification of
+  /// the token.
+  ///
+  @override
+  Future<Map<String, dynamic>> issueJWTRS256(
       [String strClaims, Map<String, dynamic> mapClaims]) async {
-    String _claims;
+    SegmentPayload _claims;
     // Throw exception when there is no suficient claims data
     if ((strClaims == null && mapClaims == null) ||
         (strClaims.isEmpty && mapClaims.isEmpty) ||
@@ -33,15 +42,16 @@ class IvmJWT extends JWT {
     if ((strClaims != null && mapClaims != null) ||
         (strClaims != null && mapClaims == null)) {
       // cases to use [strClaims] param
-      JsonValidator jv = JsonValidator(strClaims);
+      final jv = JsonValidator(strClaims);
       if (jv.validate()) {
-        _claims = strClaims;
+        final claimsJ = json.decode(strClaims) as Map<String, dynamic>;
+        _claims = SegmentPayload.fromJson(claimsJ);
       } else {
         throw Exception('Invalid json format of the claim');
       }
     } else if (mapClaims != null && mapClaims.isNotEmpty) {
       try {
-        _claims = json.encode(mapClaims);
+        _claims = SegmentPayload.fromJson(mapClaims);
       } catch (e) {
         throw Exception(
             'Error raised while encoding the parameter mapClaims to json string! $e.');
@@ -50,66 +60,59 @@ class IvmJWT extends JWT {
 
     /// 1. Generate key pair
     ///
-    IvmGenerateKP ivmkp;
+    IvmKeyPair ivmkp;
     try {
-      ivmkp = IvmGenerateKP(ivmBitStrength: 2048);
+      ivmkp = IvmKeyPair(ivmBitStrength: 2048);
       ivmkp.generateAPair();
     } catch (e) {
       throw Exception('Error raised while generating key pair! $e.');
     }
 
-    RSAPublicKey pubKey = ivmkp.publicKey;
-    RSAPrivateKey prvKey = ivmkp.privateKey;
-    Uuid kid = ivmkp.kid;
+    final prvKey = ivmkp.privateKey;
+    final kid = ivmkp.kid;
 
-    // <<<< ================ Converting key Pair key modulus and Exp ====== >>>>
-    print('pubKey: ${pubKey.toString()}');
-    String e = base64Url.encode(Utilities.writeBigInt(pubKey.publicExponent));
-    print('e: $e');
+    // Get the public key as JWK
+    final kpPublicKey = ivmkp.getPublicKeyAsJWK();
+    print('jwk public key: $kpPublicKey');
 
-    print(
-        'modulus length: ${pubKey.modulus.bitLength}, octets: ${pubKey.modulus.bitLength / 8}');
-    print('modulus: ${pubKey.modulus}');
-
-    String n = base64Url.encode(Utilities.writeBigInt(pubKey.modulus));
-    print('n: $n');
-
-    print('kid: \n\n $kid');
-    print('modulus n: \n\n${n}');
-    print('expon e: \n\n${e}');
-
-    // <<<< =============================================================== >>>>
+    // Get the public key as element of JWKS
+    final jwks = {'keys': [].add(kpPublicKey)};
+    print('jwks with single JWK: $jwks');
 
     /// 2. Build the dataToSign bytes list from the provided in paramaters
     /// header and payload segments.
     ///
-    final String _header =
-        "{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}";
+    final _header =
+        '{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}';
 
-    Uint8List dataToSign =
-        Uint8List.fromList(("${_header}.${_claims}").codeUnits);
-    // Uint8List dataToSign = latin1.encode("${_header}.${_claims}");
-    Uint8List signature;
+    final _claimsStr = _claims.toJson().toString();
+    final dataToSign = Uint8List.fromList('${_header}.${_claimsStr}'.codeUnits);
 
     /// 3. Use function [sign] to sign the segments data with the private key
     /// from step-1.
     ///
-    IvmSignerRSA256 sign;
     try {
-      sign = IvmSignerRSA256(prvKey, dataToSign);
-      signature = sign.signedBytes;
+      final sign = IvmSignerRSA256(prvKey, dataToSign);
+
+      /// 4. Compose the 3 segments of the JWToken as Base64 string separated
+      /// with comma (.)
+      ///
+      final segment1 = await Utilities.base64UrlEncode(_header);
+      final segment2 = await Utilities.base64UrlEncode(_claimsStr);
+      final segment3 = sign.getBase64Signature();
+
+      // Returning the token and the publicKey as JWKS
+      return {
+        'token': '${segment1}.${segment2}.${segment3}',
+        'publicKey': '$jwks'
+      };
+      // <<<<
+
     } catch (e) {
       print(e);
+      throw Exception(
+          'Error has raised while preparing and signing the token! $e.');
     }
-
-    /// 4. Compose the 3 segments of the JWToken as Base64 string separated
-    /// with comma (.)
-    ///
-    String segment1 = await Utilities.base64UrlEncode(_header, true);
-    String segment2 = await Utilities.base64UrlEncode(_claims, true);
-    String segment3 = sign.getBase64Signature();
-
-    return '${segment1}.${segment2}.${segment3}';
   }
 
   /// Verify JWT RS256 signed token
@@ -121,10 +124,10 @@ class IvmJWT extends JWT {
     /// Verification proprties
     SegmentHeader vSegHeader;
     SegmentPayload vSegPayload;
-    bool validAlg = false;
-    bool validJWKS = false;
-    bool validSignature = false;
-    bool timeValid = false;
+    var validAlg = false;
+    var validJWKS = false;
+    var validSignature = false;
+    var timeValid = false;
 
     // Step-1 Check the token integrity
     final _integrity = await _checkTokenIntegrity(token);
@@ -133,24 +136,27 @@ class IvmJWT extends JWT {
     if (_integrity['valid'] as bool) {
       try {
         // ... set the Header object to be sent to step-2 checking signature
-        vSegHeader = SegmentHeader.fromJson(json.decode(_integrity['header']));
+        final headerJson = json.decode(_integrity['header'].toString())
+            as Map<String, dynamic>;
+        vSegHeader = SegmentHeader.fromJson(headerJson);
       } catch (e) {
         throw Exception('Error while getting header object values! $e.');
       }
 
       // A valid header MUST have a key 'alg' and its value MUST NOT be 'none';
       try {
-        validAlg = (vSegHeader.alg != 'none' &&
+        validAlg = vSegHeader.alg != 'none' &&
             vSegHeader.alg != '' &&
-            vSegHeader.alg != null);
+            vSegHeader.alg != null;
       } catch (e) {
         throw Exception('Invalid verification of mandatory header values! $e.');
       }
 
       try {
         // ... set the Payload (claims) object to be sent to step-2 checking signature
-        vSegPayload =
-            SegmentPayload.fromJson(json.decode(_integrity['payload']));
+        final payloadJson = json.decode(_integrity['payload'].toString())
+            as Map<String, dynamic>;
+        vSegPayload = SegmentPayload.fromJson(payloadJson);
       } catch (e) {
         throw Exception(
             'Invalid verification of mandatory payload values! $e.');
@@ -181,8 +187,8 @@ class IvmJWT extends JWT {
       /// [kid] is the key id that will be used to identify the exact JWK from the set.
       ///
       validSignature = await _verifyRS256Signature(
-          header: _integrity['header'],
-          payload: _integrity['payload'],
+          header: _integrity['header'].toString(),
+          payload: _integrity['payload'].toString(),
           token: token,
           alg: vSegHeader.alg,
           jwks: jwks,
@@ -206,15 +212,17 @@ class IvmJWT extends JWT {
     }
 
     print(
-        '_verifyJWTRS256 result: ${(vSegHeader != null && vSegPayload != null && validAlg && validJWKS && validSignature && timeValid)}');
-    return (vSegHeader != null &&
+        '_verifyJWTRS256 result: ${vSegHeader != null && vSegPayload != null && validAlg && validJWKS && validSignature && timeValid}');
+    return vSegHeader != null &&
         vSegPayload != null &&
         validAlg &&
         validJWKS &&
         validSignature &&
-        timeValid);
+        timeValid;
   } // end of verifyJWTRS256
 
+  /// Decode the provided [token] using the [jwks] set.
+  ///
   static Future<Map<String, dynamic>> decodeJWTRS256(
       String token, String jwks) async {
     if (await _verifyJWTRS256(token, jwks)) {
@@ -223,10 +231,9 @@ class IvmJWT extends JWT {
       /// decode payload
       try {
         // Split the token to segments
-        final List<String> tokenSegments = token.split('.');
-        final String jwtPayload =
-            await Utilities.base64UrlDecode(tokenSegments[1]);
-        decodedPayload = json.decode(jwtPayload);
+        final tokenSegments = token.split('.');
+        final jwtPayload = await Utilities.base64UrlDecode(tokenSegments[1]);
+        decodedPayload = json.decode(jwtPayload) as Map<String, dynamic>;
       } catch (e) {
         throw Exception('Error decoding payload segment! $e.');
       }
@@ -235,5 +242,14 @@ class IvmJWT extends JWT {
     } else {
       return null;
     }
+  }
+
+  /// Create a new JWT token and sign it with the provided private key
+  ///
+  @override
+  Future<String> signJWTRS256(RSAPrivateKey privateKey,
+      [String strClaims, Map<String, dynamic> mapClaims]) {
+    // TODO: [JWT-11] implement sign JWT with provided private key
+    throw UnimplementedError();
   }
 }

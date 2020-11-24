@@ -1,7 +1,7 @@
 /// JWT library by Ivmanto(c)
 ///
-///The initial intention is to use this library to work with JWT tokens that comply with RFC7519.
-///Intended and signed in with RS256 and its verification for usage with Google`s idTokens.
+/// This library provides tools for working with JWT tokens which comply with RFC7519.
+/// The first version supports issue and verification of RS256 signed tokens.
 
 library ivmjwt;
 
@@ -39,7 +39,7 @@ part 'src/verifyJWT/ivm_check_claims.dart';
 // ----
 
 // The ivmJWT - issue
-part 'src/rsa/ivm_generate_keys.dart';
+part 'src/rsa/ivm_key_pair.dart';
 part 'src/rsa/ivm_signer.dart';
 part 'src/rsa/ivm_verifier.dart';
 // ----

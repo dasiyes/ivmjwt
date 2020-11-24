@@ -6,10 +6,10 @@ class Utilities {
   /// Decodes Base64Url encoded strings
   /// [encodedString] the string in Base64 format
   static Future<String> base64UrlDecode(String encodedString,
+      // ignore: avoid_positional_boolean_parameters
       [bool decodeL1 = false]) async {
     // Decode in List of integers. Note: base64 normalization required!
-    final Uint8List encIntList =
-        await base64Url.decode(base64.normalize(encodedString));
+    final encIntList = base64Url.decode(base64.normalize(encodedString));
 
     // Decode in UTF string
     try {
@@ -25,17 +25,18 @@ class Utilities {
   /// Encoding to Base64 String
   /// [source] is the string to be encoded in Base64
   static Future<String> base64UrlEncode(String source,
+      // ignore: avoid_positional_boolean_parameters
       [bool encodeL1 = false]) async {
     try {
       Uint8List bytes;
       if (encodeL1) {
         bytes = latin1.encode(source);
       } else {
-        bytes = utf8.encode(source);
+        bytes = Uint8List.fromList(utf8.encode(source));
       }
       return base64Url.encode(bytes);
     } catch (e) {
-      rethrow;
+      throw Exception('Error while base64Url encoding! $e');
     }
   }
 
@@ -45,28 +46,29 @@ class Utilities {
   ///
   static List<String> getObjectDefNames(Object obj, String what) {
     // Prep the result list
-    List<String> result = [];
-    var def_mirror;
+    final result = <String>[];
+    // ignore: prefer_typing_uninitialized_variables
+    var defMirror;
 
     try {
-      InstanceMirror instance_mirror = reflect(obj);
-      def_mirror = instance_mirror.type;
+      final instanceMirror = reflect(obj);
+      defMirror = instanceMirror.type;
     } catch (e) {
       throw Exception('Error while getting the mirror system! $e.');
     }
 
-    for (var v in def_mirror.declarations.values) {
+    for (var v in defMirror.declarations.values) {
       if (what == 'fields' ||
           what == 'field' ||
           what == 'properties' ||
           what == 'property') {
         if (v is VariableMirror) {
-          var fname = MirrorSystem.getName(v.simpleName);
+          final fname = MirrorSystem.getName(v.simpleName);
           result.add(fname);
         }
       } else if (what == 'method' || what == 'methods') {
         if (v is MethodMirror) {
-          var mname = MirrorSystem.getName(v.simpleName);
+          final mname = MirrorSystem.getName(v.simpleName);
           result.add(mname);
         }
       }
@@ -85,14 +87,14 @@ class Utilities {
   static BigInt readBytes(Uint8List bytes) {
     BigInt read(int start, int end) {
       if (end - start <= 4) {
-        int result = 0;
-        for (int i = end - 1; i >= start; i--) {
+        var result = 0;
+        for (var i = end - 1; i >= start; i--) {
           result = result * 256 + bytes[i];
         }
-        return new BigInt.from(result);
+        return BigInt.from(result);
       }
-      int mid = start + ((end - start) >> 1);
-      var result = read(start, mid) +
+      final mid = start + ((end - start) >> 1);
+      final result = read(start, mid) +
           read(mid, end) * (BigInt.one << ((mid - start) * 8));
       return result;
     }
@@ -102,11 +104,12 @@ class Utilities {
 
   static Uint8List writeBigInt(BigInt number) {
     // Not handling negative numbers. Decide how you want to do that.
-    int bytes = (number.bitLength + 7) >> 3;
-    var b256 = new BigInt.from(256);
-    var result = new Uint8List(bytes);
-    for (int i = 0; i < bytes; i++) {
+    final bytes = (number.bitLength + 7) >> 3;
+    final b256 = BigInt.from(256);
+    final result = Uint8List(bytes);
+    for (var i = 0; i < bytes; i++) {
       result[i] = number.remainder(b256).toInt();
+      // ignore: parameter_assignments
       number = number >> 8;
     }
     return result;
@@ -120,9 +123,9 @@ class Utilities {
   /// Decode a BigInt from bytes in big-endian encoding.
   ///
   static BigInt decodeBigInt(List<int> bytes) {
-    BigInt result = new BigInt.from(0);
-    for (int i = 0; i < bytes.length; i++) {
-      result += new BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
+    var result = BigInt.from(0);
+    for (var i = 0; i < bytes.length; i++) {
+      result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
     }
     return result;
   }
@@ -131,12 +134,13 @@ class Utilities {
   static Uint8List encodeBigInt(BigInt number) {
     // Not handling negative numbers. Decide how you want to do that.
 
-    var _byteMask = new BigInt.from(0xff);
+    final _byteMask = BigInt.from(0xff);
 
-    int size = (number.bitLength + 7) >> 3;
-    var result = new Uint8List(size);
-    for (int i = 0; i < size; i++) {
+    final size = (number.bitLength + 7) >> 3;
+    final result = Uint8List(size);
+    for (var i = 0; i < size; i++) {
       result[size - i - 1] = (number & _byteMask).toInt();
+      // ignore: parameter_assignments
       number = number >> 8;
     }
     return result;

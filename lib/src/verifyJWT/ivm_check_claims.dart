@@ -5,14 +5,14 @@ part of '../../ivmjwt.dart';
 /// The main and only mandatory is the time expiration [exp]
 ///
 Future<bool> _verifyClaims(SegmentPayload claims) async {
-  bool result = false;
+  var result = false;
   if (claims.exp == null) {
     return result;
   }
 
-  int exp = claims.exp;
-  int nbf = claims.nbf ?? 0;
-  int now = Utilities.currentTimeInSMS();
+  final exp = claims.exp;
+  final nbf = claims.nbf ?? 0;
+  final now = Utilities.currentTimeInSMS();
 
   /// If not_before is active - consider it for time validity
   if (nbf >= 0 && nbf < now + 180) {

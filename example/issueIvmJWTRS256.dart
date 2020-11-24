@@ -7,7 +7,7 @@ Future<String> main() async {
   String result = "ivmJWToken here...";
 
   /// Generate key pair; bitStrength 1024, 2048[default], 4096
-  IvmGenerateKP ivmkp = IvmGenerateKP(ivmBitStrength: 1028);
+  IvmKeyPair ivmkp = IvmKeyPair(ivmBitStrength: 1028);
 
   ivmkp.generateAPair();
   RSAPublicKey pubKey = ivmkp.publicKey;

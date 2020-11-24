@@ -24,8 +24,14 @@ abstract class JWT extends Object {
   /// signed or integrity protected with a Message Authentication Code
   /// (MAC) and/or encrypted.
   ///
-  /// Create RS256 signed token and return this JWT
-  Future<String> issueJWTRS256();
+  /// Create RS256 signed token and return this JWT alongside witht the
+  /// public key that can be used to verify it.
+  ///
+  Future<Map<String, dynamic>> issueJWTRS256();
+
+  /// Create RS256 signed token with provide private key to be signed with
+  ///
+  Future<String> signJWTRS256(RSAPrivateKey pvK);
 
   /// Verify RS256 signed JWT. Unsigned token MUST NOT be verified.
   static Future<bool> _verifyJWTRS256(String token, String jwks) async {

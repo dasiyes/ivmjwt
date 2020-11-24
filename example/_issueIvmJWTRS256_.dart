@@ -1,11 +1,18 @@
 import 'package:ivmjwt/ivmjwt.dart';
 
 Future<void> main() async {
-  IvmJWT ivmjwt = IvmJWT();
+  final ivmjwt = IvmJWT();
 
-  var exp = Utilities.currentTimeInSMS() + 300000;
-  String _claims = "{\"iss\": \"Ivmanto.com\", \"exp\": $exp}";
+  final exp = Utilities.currentTimeInSMS() + 300000;
+  final _claims = '{\"iss\": \"Ivmanto.com\", \"exp\": $exp}';
 
-  String token = await ivmjwt.issueJWTRS256(_claims);
-  print('the token: \n\n$token');
+  final result = await ivmjwt.issueJWTRS256(_claims);
+
+  if (result.keys.contains('token')) {
+    final token = result['token'].toString();
+    print('the token: \n\n$token');
+    print("the publicKey: \n\n$result['publicKey']");
+  } else {
+    print(result);
+  }
 }
