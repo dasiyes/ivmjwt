@@ -6,7 +6,8 @@ import 'package:pointycastle/pointycastle.dart';
 Future<String> main() async {
   String result = "ivmJWToken here...";
 
-  IvmGenerateKP ivmkp = IvmGenerateKP(ivmBitStrength: 1028);
+  /// Generate key pair; bitStrength 1024, 2048[default], 4096
+  IvmKeyPair ivmkp = IvmKeyPair(ivmBitStrength: 1028);
 
   ivmkp.generateAPair();
   RSAPublicKey pubKey = ivmkp.publicKey;
@@ -15,7 +16,7 @@ Future<String> main() async {
   Uint8List signature;
 
   try {
-    IvmSignerRSA256 sign = IvmSignerRSA256(prvKey, utf8.encode(dataToSign));
+    IvmSignerRSA256 sign = IvmSignerRSA256(prvKey, latin1.encode(dataToSign));
     signature = sign.signedBytes;
     print(signature);
     print(sign.getBase64Signature());
@@ -23,7 +24,7 @@ Future<String> main() async {
     print(e);
   }
 
-  Uint8List pSignedData = utf8.encode('.');
+  Uint8List pSignedData = latin1.encode('.');
 
   try {
     IvmVerifierRSA256 verifier =

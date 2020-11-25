@@ -4,10 +4,10 @@ part of '../../ivmjwt.dart';
 ///
 /// The entry point for JWT validation function
 Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
-  String jwtHeader = '';
-  String jwtPayload = '';
-  bool validHeader = false;
-  bool validPayload = false;
+  var jwtHeader = '';
+  var jwtPayload = '';
+  var validHeader = false;
+  var validPayload = false;
 
   /// Step-1: Check for token integrity (3 parts)
   ///
@@ -21,11 +21,11 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
 
   /// Parse the JWT to extract its three components. The first segment is the Header, the second is the Payload, and the third is the Signature. Each segment is base64url encoded.
   ///
-  final List<String> tokenSegments = token.split('.');
+  final tokenSegments = token.split('.');
 
   /// Verify that the JWT contains three segments, separated by two period ('.') characters.
   ///
-  if (!(tokenSegments.length == 3) || !(tokenSegments[2].length > 0)) {
+  if (!(tokenSegments.length == 3) || tokenSegments[2].isEmpty) {
     // Token does not have 3 inetgrity parts
     throw Exception('Token integrity is broken!');
   }
@@ -43,7 +43,6 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   // Verify if the header is a valid JSON
   try {
     validHeader = JsonValidator(jwtHeader).validate();
-    print('validHeader: $validHeader');
     // validHeader = await Utilities.validateSegmentToJSON(jwtHeader);
   } catch (e) {
     throw Exception('Error validating header segment! $e.');
@@ -60,7 +59,6 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   // Verify if the payload is a valid JSON
   try {
     validPayload = JsonValidator(jwtPayload).validate();
-    print('validPayload: $validPayload');
     // validPayload = await Utilities.validateSegmentToJSON(jwtPayload);
   } catch (e) {
     throw Exception('Error validating payload segment! $e.');
@@ -68,8 +66,8 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
 
   // Return the validity check and decoded segments
   if (validHeader && validPayload) {
-    return {"valid": true, "header": jwtHeader, "payload": jwtPayload};
+    return {'valid': true, 'header': jwtHeader, 'payload': jwtPayload};
   } else {
-    return {"valid": false, "header": null, "payload": null};
+    return {'valid': false, 'header': null, 'payload': null};
   }
 }

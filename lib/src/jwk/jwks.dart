@@ -10,48 +10,47 @@ part of '../../ivmjwt.dart';
 ///
 /// Implementations SHOULD ignore JWKs within a JWK Set that use "kty" (key type) values that are not understood by them, that are missing required members, or for which values are out of the supported ranges.
 abstract class JWKS implements JWK {
-  /// "keys" Parameter
-  ///
-  /// The value of the "keys" parameter is an array of JWK values. By default, the order of the JWK values within the array does not imply an order of preference among them, although applications of JWK Sets can choose to assign a meaning to the order for their purposes, if desired.
-  Map<String, List<JWK>> _jwks;
-
-  JWKS(Map<String, List<JWK>> jwks) {
-    Exception e = Exception('Invalid structure of the object with keys!');
+  JWKS(Map<String, List> jwks) {
+    final e = Exception('Invalid structure of the object with keys!');
     if (!_jwks.keys.contains('keys')) {
       throw e;
     } else {
       if (!_jwks['keys'].runtimeType.toString().startsWith('List')) {
-        print('...parameter type is: ${_jwks.keys.runtimeType.toString()}');
         throw e;
       }
     }
-    this._jwks = jwks;
+    _jwks = jwks;
   }
+
+  /// "keys" Parameter
+  ///
+  /// The value of the "keys" parameter is an array of JWK values. By default, the order of the JWK values within the array does not imply an order of preference among them, although applications of JWK Sets can choose to assign a meaning to the order for their purposes, if desired.
+  Map<String, List> _jwks;
 
   /// Set the object value
   ///
-  set keys(value) {
+  set keys(Map<String, List> value) {
     if (!_jwks.keys.contains('keys')) {
       throw e;
     } else {
       if (!_jwks.keys.runtimeType.toString().startsWith('List')) {
         throw e;
       } else {
-        this._jwks = value;
+        _jwks = value;
       }
     }
   }
 
   /// Get the entire object as a map
   ///
-  get keys {
-    return this._jwks;
+  Map<String, List> get keys {
+    return _jwks;
   }
 
   /// Get the List of JWKs
   ///
-  getKeysAsList() {
-    return this._jwks.keys;
+  Iterable<String> getKeysAsList() {
+    return _jwks.keys;
   }
 
   /// Get a single JWKey by its index from the set

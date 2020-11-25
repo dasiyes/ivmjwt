@@ -6,8 +6,13 @@ part of '../../ivmjwt.dart';
 /// of RS256 signed tokens
 ///
 class IvmRS256JWKS extends JWKS {
+  IvmRS256JWKS(this._jwks) : super(_jwks);
+
+  factory IvmRS256JWKS.fromJson(Map<String, dynamic> json) =>
+      _IvmRS256JWKSFromJson(json);
+
   @override
-  Map<String, List<JWK>> _jwks;
+  Map<String, List> _jwks;
 
   @override
   String _kty;
@@ -28,6 +33,7 @@ class IvmRS256JWKS extends JWKS {
   String e;
 
   @override
+  // ignore: non_constant_identifier_names
   String key_ops;
 
   @override
@@ -51,19 +57,15 @@ class IvmRS256JWKS extends JWKS {
   @override
   String use;
 
-  IvmRS256JWKS(Map<String, List<JWK>> this._jwks) : super(_jwks);
-
-  factory IvmRS256JWKS.fromJson(Map<String, dynamic> json) =>
-      _IvmRS256JWKSFromJson(json);
-
   @override
-  JWK getKeyByIndex(int index) {
-    return this._jwks['keys'][index];
+  IvmRS256JWK getKeyByIndex(int index) {
+    return _jwks['keys'][index] as IvmRS256JWK;
   }
 
   @override
-  JWK getKeyByKid(String kid) {
-    for (JWK key in this._jwks['keys']) {
+  IvmRS256JWK getKeyByKid(String kid) {
+    final keysArray = _jwks['keys'] as List<IvmRS256JWK>;
+    for (var key in keysArray) {
       if (key.kid == kid) {
         return key;
       }
@@ -72,18 +74,20 @@ class IvmRS256JWKS extends JWKS {
   }
 }
 
+// ignore: non_constant_identifier_names
 IvmRS256JWKS _IvmRS256JWKSFromJson(Map<String, dynamic> json) {
   /// [e] general excption to throw from this method
-  Exception e = Exception('Invalid structure of the object with keys!');
-  List<JWK> listJWKs = [];
+  final e = Exception('Invalid structure of the object with keys!');
+
+  final listJWKs = <IvmRS256JWK>[];
 
   if (json.keys.contains('keys')) {
     if (json['keys'].runtimeType.toString().startsWith('List')) {
-      List<dynamic> keys = json['keys'];
+      final keys = json['keys'] as List;
 
       for (var element in keys) {
         try {
-          IvmRS256JWK key = IvmRS256JWK.fromJson(element);
+          final key = IvmRS256JWK.fromJson(element as Map<String, dynamic>);
           listJWKs.add(key);
         } catch (e) {
           rethrow;
@@ -91,11 +95,11 @@ IvmRS256JWKS _IvmRS256JWKSFromJson(Map<String, dynamic> json) {
       }
 
       /// Building the json object with the keys
-      final Map<String, List<JWK>> objKeys = {'keys': listJWKs};
+      final objKeys = <String, List<IvmRS256JWK>>{'keys': listJWKs};
 
       /// Instantiate the JWKS object
       ///
-      IvmRS256JWKS jwks = IvmRS256JWKS(objKeys);
+      final jwks = IvmRS256JWKS(objKeys);
       return jwks;
     } else {
       throw e;

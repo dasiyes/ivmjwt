@@ -20,15 +20,20 @@ Future<bool> _verifyRS256Signature(
     @required String kid,
     @required String jwks}) async {
   // step-PREP-0
-  final List<String> tokenSegments = token.split('.');
+  final tokenSegments = token.split('.');
   RSAPublicKey _usePKey;
-  if (alg.isEmpty || alg == 'none') return false;
+  if (alg.isEmpty || alg == 'none') {
+    return false;
+  }
 
   // step-PREP-1: get the public key:
   //
   try {
-    // print('[_verifyRS256Signature] jwks: $jwks, kid: $kid');
-    _usePKey = await Utilities.getJWK(jwks, kid);
+    // Work with the JWKS to get the right jwkey and then return the RSAPublicKey from it.
+    final jJWKS = json.decode(jwks) as Map<String, dynamic>;
+    final jwkSet = IvmRS256JWKS.fromJson(jJWKS);
+    final jKey = jwkSet.getKeyByKid(kid);
+    _usePKey = jKey.getRSAPublicKey();
   } catch (e) {
     throw Exception(
         'Unable to acquire public key for signature verification! $e.');
@@ -38,25 +43,22 @@ Future<bool> _verifyRS256Signature(
   if (alg == 'RS256') {
     // Prepare the token's signature (segment-3) and the header and the payload
     // as combined signedData - all in Uint8List format;
-    final Uint8List u8lOrgSignature =
+    final u8lOrgSignature =
         base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-    final Uint8List sep = utf8.encode('.');
-    final Uint8List headerData =
-        base64Url.decode(base64Url.normalize(tokenSegments[0]));
-    final Uint8List payloadData =
-        base64Url.decode(base64Url.normalize(tokenSegments[1]));
+    final hd = await Utilities.base64UrlDecode(tokenSegments[0]);
+    final pd = await Utilities.base64UrlDecode(tokenSegments[1]);
 
-    final Uint8List signedData =
-        Uint8List.fromList(headerData + sep + payloadData);
+    final signedData = utf8.encode('${hd}.${pd}') as Uint8List;
 
     // return the result of Verify the signature
     try {
-      IvmVerifierRSA256 ivmVerifier =
+      final ivmVerifier =
           IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
+
       return ivmVerifier.verifyRS256();
     } catch (e) {
-      throw e;
+      throw Exception('Error raised while verifying signature! $e');
     }
   } else {
     throw Exception('Invalid signature verification algorithm selected!');

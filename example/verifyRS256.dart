@@ -15,7 +15,7 @@ Future main() async {
   String jwks =
       "{\"keys\":[{\"e\":\"AQAB\",\"n\":\"4_Ipw_yzV3OB1fS4ngnnH2cRDy7dZTBP8TEaqJiILHve3P2Z6NSgTr9dbLCUXjO-pwt6t_dMs2oVPDfpM8I-10g9cO-gcPA5QTzTKcHoned0B9p8jzEEvSDBlej1qH0-SgJMooQrbJXHjatF4TiAOTCFT-yRwPbcar0QYhvUWNV52xjEvj4yDnmK42y819LY7Hy-Gkzky4iV9mjf6qEFmlxTjSdqxuQo0Y68YHJZLGSx3rQmNzYt0XY8So3aGKXz_v4mMHkZl62mQGx5U_80LmB-3j6WjIJXilJmj1pbMU6Cp6sWjA9pTgAxF5LDzxplXpjQas33vsJ5n1xsmGxpow\",\"alg\":\"RS256\",\"kty\":\"RSA\",\"use\":\"sig\",\"kid\":\"f092b612e9b6447deb10685bb8ffa8ae62f6aa91\"},{\"alg\":\"RS256\",\"use\":\"sig\",\"n\":\"vjjZdBjWDVibe5f02VSd3U8gqGzjnGL7ZTMUZMxzeYMH14sTm99eGJoFFuP6b0ti-VHTbdUc88jNe9KY7cfoihvTS7ZIjzwyGUq2ThV5fsWo0gYZwnKbLz0QyAXIi7U89zDEud8K8GIq4mK1Q1kcXFsjN9pa59qMthjVHMUBJGQRqH22mzxc0JhkBMs4ElG1UHMyCnDcTAFHw30c7iE6uTXBATtNIkLzUy1X5hLnKW00JqD-L20bsXOAP-_7yGkpSEvvaxroeBm58JHUNhvWklvsK4S-Dh8Lm917apNSCWumfDQ6plBJrhRI3tQl9k06ZfayRf-46y7DarZP7FJOqQ\",\"kid\":\"d946b137737b973738e5286c208b66e7a39ee7c1\",\"kty\":\"RSA\",\"e\":\"AQAB\"}]}";
   try {
-    final res = await IvmJWT.verifyJWTRS256(idt, jwks);
+    final res = await IvmJWT.decodeJWTRS256(idt, jwks);
     print(res);
   } catch (e) {
     print(e);

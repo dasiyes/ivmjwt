@@ -7,6 +7,7 @@ abstract class JWT extends Object {
   SegmentHeader header;
   Map<String, dynamic> payload;
   String signature;
+  String token;
 
   /// Registered claim names
   Map<String, dynamic> claim;
@@ -14,14 +15,36 @@ abstract class JWT extends Object {
   /// Private claims to join the registered claim names;
   Map<String, dynamic> data;
 
-  /// Create, RS256 sign and return new JWT
-  void issueJWTRS256();
+  /// [RFC7519] Abstract
+  /// JSON Web Token (JWT) is a compact, URL-safe means of representing
+  /// claims to be transferred between two parties. The claims in a JWT
+  /// are encoded as a JSON object that is used as the payload of a JSON
+  /// Web Signature (JWS) structure or as the plaintext of a JSON Web
+  /// Encryption (JWE) structure, enabling the claims to be digitally
+  /// signed or integrity protected with a Message Authentication Code
+  /// (MAC) and/or encrypted.
+  ///
+  /// Create RS256 signed token and return this JWT alongside witht the
+  /// public key that can be used to verify it.
+  ///
+  Future<Map<String, dynamic>> issueJWTRS256();
+
+  /// Create RS256 signed token with provide private key to be signed with
+  ///
+  Future<String> signJWTRS256(RSAPrivateKey pvK);
 
   /// Verify RS256 signed JWT. Unsigned token MUST NOT be verified.
-  static void verifyJWTRS256() {
-    // provide the JWT token String value
+  static Future<bool> _verifyJWTRS256(String token, String jwks) async {
+    return false;
   }
 
-  /// Signing the JWT with the used encryption method in the header
-  void sign();
+  /// decode the token payload and header and return it as json representation
+  static Future<Map<String, dynamic>> decodeJWTRS256(
+      String token, String jwks) async {
+    Map<String, dynamic> result = {};
+    if (await _verifyJWTRS256(token, jwks)) {
+      return result;
+    }
+    return null;
+  }
 }

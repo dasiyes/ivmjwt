@@ -5,6 +5,19 @@ part of '../../ivmjwt.dart';
 /// This implementation is to handle RS256 tokens
 ///
 class IvmRS256JWK extends JWK {
+  IvmRS256JWK(String kty,
+      {this.alg,
+      this.use,
+      // ignore: non_constant_identifier_names
+      this.key_ops,
+      this.kid,
+      this.n,
+      this.e})
+      : super(kty, alg: alg, use: use, key_ops: key_ops, kid: kid, n: n, e: e);
+
+  factory IvmRS256JWK.fromJson(Map<String, dynamic> json) =>
+      _IvmRS256JWKFromJson(json);
+
   @override
   String _kty;
 
@@ -24,6 +37,7 @@ class IvmRS256JWK extends JWK {
   String e;
 
   @override
+  // ignore: non_constant_identifier_names
   String key_ops;
 
   @override
@@ -44,24 +58,25 @@ class IvmRS256JWK extends JWK {
   @override
   String use;
 
-  IvmRS256JWK(String kty,
-      {String this.alg = null,
-      String this.use = null,
-      String this.key_ops = null,
-      String this.kid = null,
-      String this.n = null,
-      String this.e = null})
-      : super(kty, alg: alg, use: use, key_ops: key_ops, kid: kid, n: n, e: e);
+  /// Extract the public key from JWK json format as RSAPublicKey
+  ///
+  RSAPublicKey getRSAPublicKey() {
+    final _eBytes = base64Url.decode(base64Url.normalize(e));
+    final _nBytes = base64Url.decode(base64Url.normalize(n));
 
-  factory IvmRS256JWK.fromJson(Map<String, dynamic> json) =>
-      _IvmRS256JWKFromJson(json);
+    final modulus = Utilities.readBytes(_nBytes);
+    final exponent = Utilities.readBytes(_eBytes);
+
+    return RSAPublicKey(modulus, exponent);
+  }
 }
 
 /// Factory method to load JWK from json object
 ///
+// ignore: non_constant_identifier_names
 IvmRS256JWK _IvmRS256JWKFromJson(Map<String, dynamic> json) {
   try {
-    IvmRS256JWK pk = IvmRS256JWK(json['kty']);
+    final pk = IvmRS256JWK(json['kty'].toString());
     pk.alg = json['alg'] as String;
     pk.use = json['use'] as String;
     pk.kid = json['kid'] as String;

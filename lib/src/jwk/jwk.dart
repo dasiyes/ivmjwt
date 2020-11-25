@@ -11,6 +11,17 @@ part of '../../ivmjwt.dart';
 /// In addition to the common parameters, each JWK will have members that are key type specific. These members represent the parameters of the key. Section 6 of the JSON Web Algorithms (JWA) [JWA] specification defines multiple kinds of cryptographic keys and their associated members.
 
 abstract class JWK {
+  JWK(String kty, {use, alg, kid, key_ops, n, e}) {
+    if (['EC', 'RSA', 'oct'].contains(kty)) {
+      _kty = kty;
+    } else {
+      throw Exception('Unacceptable value for the key type!');
+    }
+  }
+
+  /// Instantiate an object from a json object
+  JWK.fromJson(Map<String, dynamic> json);
+
   /// "kty" (Key Type) Parameter
   ///
   /// The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or be a value that contains a Collision- Resistant Name. The "kty" value is a case-sensitive string. This member [MUST] be present in a JWK.
@@ -99,30 +110,13 @@ abstract class JWK {
   ///
   String qi;
 
-  JWK(String kty,
-      {String use = null,
-      String alg = null,
-      String kid = null,
-      String key_ops = null,
-      String n = null,
-      String e = null}) {
-    if (['EC', 'RSA', 'oct'].contains(kty)) {
-      this._kty = kty;
-    } else {
-      throw Exception('Unacceptable value for the key type!');
-    }
-  }
-
-  /// Instantiate an object from a json object
-  JWK.fromJson(Map<String, dynamic> json);
-
   set kty(String value) {
     if (['EC', 'RSA', 'oct'].contains(value)) {
-      this._kty = value;
+      _kty = value;
     }
   }
 
-  get kty {
-    return this._kty;
+  String get kty {
+    return _kty;
   }
 }

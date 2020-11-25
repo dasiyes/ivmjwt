@@ -1,20 +1,21 @@
 /// JWT library by Ivmanto(c)
 ///
-///The initial intention is to use this library to work with JWT tokens that comply with RFC7519.
-///Intended and signed in with RS256 and its verification for usage with Google`s idTokens.
+/// This library provides tools for working with JWT tokens which comply with RFC7519.
+/// The first version supports issue and verification of RS256 signed tokens.
 
 library ivmjwt;
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
-// import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid_type/uuid_type.dart';
+import 'package:ivmjv/ivmjv.dart';
 
 // The JWT
 part 'src/jwt/jwt.dart';
@@ -38,7 +39,7 @@ part 'src/verifyJWT/ivm_check_claims.dart';
 // ----
 
 // The ivmJWT - issue
-part 'src/rsa/ivm_generate_keys.dart';
+part 'src/rsa/ivm_key_pair.dart';
 part 'src/rsa/ivm_signer.dart';
 part 'src/rsa/ivm_verifier.dart';
 // ----
@@ -46,4 +47,3 @@ part 'src/rsa/ivm_verifier.dart';
 part 'ivmjwt.g.dart';
 
 part 'src/utilities.dart';
-part 'src/jsonValidator/jvalid.dart';
