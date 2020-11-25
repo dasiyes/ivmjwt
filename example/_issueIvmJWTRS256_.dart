@@ -1,4 +1,5 @@
 import 'package:ivmjwt/ivmjwt.dart';
+import 'dart:convert';
 
 Future<void> main() async {
   final ivmjwt = IvmJWT();
@@ -14,7 +15,7 @@ Future<void> main() async {
     final jwks = result['publicKey'].toString();
 
     print('the token: \n\n$token');
-    print("the publicKey: \n\n${result['publicKey']}");
+    print('the publicKey: \n\n${jwks}');
 
     print('<<<< ========== /* */ ========== >>>>');
 

@@ -72,11 +72,11 @@ class IvmJWT extends JWT {
     final kid = ivmkp.kid;
 
     // Get the public key as JWK
-    final kpPublicKey = ivmkp.getPublicKeyAsJWK();
+    final kpPublicKey = json.encode(ivmkp.getPublicKeyAsJWK());
 
     // Get the public key as element of JWKS
-    final arrayPK = <Map<String, dynamic>>[kpPublicKey];
-    final jwks = {'keys': arrayPK};
+    // final arrayPK = <Map<String, dynamic>>[kpPublicKey];
+    final jwks = '{\"keys\": [${kpPublicKey}]}';
 
     /// 2. Build the dataToSign bytes list from the provided in paramaters
     /// header and payload segments.
@@ -178,7 +178,10 @@ class IvmJWT extends JWT {
 
     // Step-2 Check the signature
 
-    if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS) {
+    if (vSegHeader.toJson().toString() != null &&
+        vSegPayload.toJson().toString() != null &&
+        validAlg &&
+        validJWKS) {
       /// [header] the token header string
       /// [payload] the token payload
       /// [token] the original token value supplied to this function
