@@ -72,6 +72,13 @@ class IvmRS256JWKS extends JWKS {
     }
     return null;
   }
+
+  /// Add existing JWK to the JWKS list
+  void addJWK(IvmRS256JWK key) {
+    if (key != null) {
+      _jwks['keys'].add(key);
+    }
+  }
 }
 
 // ignore: non_constant_identifier_names

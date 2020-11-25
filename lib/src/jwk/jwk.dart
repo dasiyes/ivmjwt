@@ -2,15 +2,26 @@ part of '../../ivmjwt.dart';
 
 /// JWK - JSON Web Key [RFC7517]
 ///
-/// A JSON Web Key (JWK) is a JavaScript Object Notation (JSON) [RFC7159] data structure that represents a cryptographic key.
+/// [Ivmanto]: This class will respect RFC7517 but not in any mean implement it in full.
 ///
-///[Ivmanto] This class will respect RFC7517 but not in any mean implement it in full.
-///
-/// A JWK is a JSON object that represents a cryptographic key. The members of the object represent properties of the key, including its value. This JSON object MAY contain whitespace and/or line breaks before or after any JSON values or structural characters, in accordance with Section 2 of RFC 7159 [RFC7159]. This document defines the key parameters that are not algorithm specific and, thus, common to many keys.
-///
-/// In addition to the common parameters, each JWK will have members that are key type specific. These members represent the parameters of the key. Section 6 of the JSON Web Algorithms (JWA) [JWA] specification defines multiple kinds of cryptographic keys and their associated members.
-
+/// Abstract according to [RFC7517]:
+/// A JSON Web Key (JWK) is a JavaScript Object Notation (JSON) data
+///    structure that represents a cryptographic key.  This specification
+///    also defines a JWK Set JSON data structure that represents a set of
+///    JWKs.  Cryptographic algorithms and identifiers for use with this
+///    specification are described in the separate JSON Web Algorithms (JWA)
+///    specification and IANA registries established by that specification.
 abstract class JWK {
+  /// "kty" by  [RFC7517]:
+  ///
+  /// The "kty" (key type) parameter identifies the cryptographic algorithm
+  ///  family used with the key, such as "RSA" or "EC".  "kty" values should
+  ///  either be registered in the IANA "JSON Web Key Types" registry
+  ///  established by [JWA] or be a value that contains a Collision-
+  ///  Resistant Name.  The "kty" value is a case-sensitive string.  This
+  ///  member MUST be present in a JWK.
+  ///
+  // ignore: avoid_unused_constructor_parameters, non_constant_identifier_names
   JWK(String kty, {use, alg, kid, key_ops, n, e}) {
     if (['EC', 'RSA', 'oct'].contains(kty)) {
       _kty = kty;
@@ -26,7 +37,7 @@ abstract class JWK {
   ///
   /// The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or be a value that contains a Collision- Resistant Name. The "kty" value is a case-sensitive string. This member [MUST] be present in a JWK.
   ///
-  /// A list of defined "kty" values can be found in the IANA "JSON Web Key Types" registry established by [JWA]; the initial contents of this registry are the values defined in Section 6.1 of [JWA].
+  /// A list of defined "kty" values can be found in the IANA "JSON Web Key Types" registry established by [JWA]; the initial contents of this registry are the values defined in [RFC7518 Section 6.1]: of [JWA]:.
   ///
   String _kty;
 
@@ -55,6 +66,7 @@ abstract class JWK {
   ///
   /// The "key_ops" (key operations) parameter identifies the operation(s) for which the key is intended to be used. The "key_ops" parameter is intended for use cases in which public, private, or symmetric keys may be present.
   ///
+  // ignore: non_constant_identifier_names
   String key_ops;
 
   /// Parameters for RSA Public Keys
