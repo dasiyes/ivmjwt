@@ -18,18 +18,13 @@ abstract class JWT extends Object {
   ///
   JWT(this.claimsSet);
 
+  /// JWT JOSE Header by [RFC7519]:
+  ///
   SegmentHeader header;
 
   /// JWT Claims Set by [RFC7519]:
+  ///
   SegmentPayload claimsSet;
-  String signature;
-  String token;
-
-  /// Registered claim names
-  Map<String, dynamic> claim;
-
-  /// Private claims to join the registered claim names;
-  Map<String, dynamic> data;
 
   /// Create RS256 signed token and return this JWT alongside witht the
   /// public key that can be used to verify it.
@@ -41,11 +36,13 @@ abstract class JWT extends Object {
   Future<String> signJWTRS256(RSAPrivateKey pvK);
 
   /// Verify RS256 signed JWT. Unsigned token MUST NOT be verified.
+  ///
   static Future<bool> _verifyJWTRS256(String token, String jwks) async {
     return false;
   }
 
   /// decode the token payload and header and return it as json representation
+  ///
   static Future<Map<String, dynamic>> decodeJWTRS256(
       String token, String jwks) async {
     final result = <String, dynamic>{};
