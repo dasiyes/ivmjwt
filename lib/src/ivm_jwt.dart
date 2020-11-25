@@ -1,62 +1,55 @@
 part of '../ivmjwt.dart';
 
+/**
+ * Creating a JWT by [RFC7519 section 7.1]
+   To create a JWT, the following steps are performed.  The order of the
+   steps is not significant in cases where there are no dependencies
+   between the inputs and outputs of the steps.
+   1.  Create a JWT Claims Set containing the desired claims.  Note that
+      * whitespace is explicitly allowed in the representation and no
+      * canonicalization need be performed before encoding.
+   2.  Let the Message be the octets of the UTF-8 representation of the
+      *  JWT Claims Set.
+   3.  Create a JOSE Header containing the desired set of Header
+      * Parameters.  The JWT MUST conform to either the [JWS] or [JWE]
+      *  specification.  Note that whitespace is explicitly allowed in the
+      *  representation and no canonicalization need be performed before
+      *  encoding.
+   4.  Depending upon whether the JWT is a JWS or JWE, there are two
+       * cases:
+       *  If the JWT is a JWS, create a JWS using the Message as the JWS
+       *   Payload; all steps specified in [JWS] for creating a JWS MUST
+       *   be followed.
+       *  Else, if the JWT is a JWE, create a JWE using the Message as
+       *   the plaintext for the JWE; all steps specified in [JWE] for
+       *   creating a JWE MUST be followed.
+   5.  If a nested signing or encryption operation will be performed,
+       * let the Message be the JWS or JWE, and return to Step 3, using a
+       * "cty" (content type) value of "JWT" in the new JOSE Header
+       * created in that step.
+   6.  Otherwise, let the resulting JWT be the JWS or JWE.
+ */
+
 /// Ivmanto JWT
 ///
 /// The Ivmanto`s JWT class with issue and verify methods for RS256 signed tokens
 ///
 class IvmJWT extends JWT {
-  // The constructor
-  IvmJWT();
+  // Instantiate the object IvmJWT by providing the payload (claims) at
+  // the time of creation. This require an object SegmentPayload object
+  // to be created before hand.
+  IvmJWT(this._claimsSet) : super(_claimsSet);
 
-  /// Issue RS256 signed JWT [RFC7519]
+  final SegmentPayload _claimsSet;
+
+  /// Issue RS256 signed JWT [RFC7519]:
   ///
-  /// This function takes at least one of the two optional parameters:
-  /// [strClaims] - a string as a valid representation of a JSON object.
-  /// or
-  /// [mapClaims] - the dart's declaration of a JSON object.
-  ///
-  /// If both arguments are null - the function will throw exception
-  /// 'Not sufficient payload data provided!'.
-  //
-  /// If both parameters are available, the function will use [strClaims]
-  /// as a prefered option.
-  ///
-  /// The function will auto-generate the key-pair and return it alongside
-  /// with the new issued JWToken. Later on, you can use it to acquire the
-  /// private and the public keys used for the signing and verification of
-  /// the token.
-  ///
+  /// follow the steps from [RFC7519 section 7.1] - referenced aboved in
+  /// this class
   @override
-  Future<Map<String, dynamic>> issueJWTRS256(
-      [String strClaims, Map<String, dynamic> mapClaims]) async {
-    SegmentPayload _claims;
-    // Throw exception when there is no suficient claims data
-    if ((strClaims == null && mapClaims == null) ||
-        (strClaims.isEmpty && mapClaims.isEmpty) ||
-        (strClaims.isEmpty && mapClaims == null) ||
-        (strClaims == null && mapClaims.isEmpty)) {
-      throw Exception('Insuficient payload!');
-    }
-
-    // If both parameters are provided - use the string claims
-    if ((strClaims != null && mapClaims != null) ||
-        (strClaims != null && mapClaims == null)) {
-      // cases to use [strClaims] param
-      final jv = JsonValidator(strClaims);
-      if (jv.validate()) {
-        final claimsJ = json.decode(strClaims) as Map<String, dynamic>;
-        _claims = SegmentPayload.fromJson(claimsJ);
-      } else {
-        throw Exception('Invalid json format of the claim');
-      }
-    } else if (mapClaims != null && mapClaims.isNotEmpty) {
-      try {
-        _claims = SegmentPayload.fromJson(mapClaims);
-      } catch (e) {
-        throw Exception(
-            'Error raised while encoding the parameter mapClaims to json string! $e.');
-      }
-    }
+  Future<Map<String, dynamic>> issueJWTRS256() async {
+    // The token claims check - this._claimsSet
+    // TODO: [dev] verify if the required claims are available
 
     /// 1. Generate key pair
     ///
