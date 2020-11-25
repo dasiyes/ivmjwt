@@ -16,7 +16,6 @@ abstract class JWKS implements JWK {
       throw e;
     } else {
       if (!_jwks['keys'].runtimeType.toString().startsWith('List')) {
-        print('...parameter type is: ${_jwks.keys.runtimeType.toString()}');
         throw e;
       }
     }

@@ -29,17 +29,11 @@ Future<bool> _verifyRS256Signature(
   // step-PREP-1: get the public key:
   //
   try {
-    print('[_verifyRS256Signature] jwks: $jwks, kid: $kid');
-
     // Work with the JWKS to get the right jwkey and then return the RSAPublicKey from it.
     final jJWKS = json.decode(jwks) as Map<String, dynamic>;
     final jwkSet = IvmRS256JWKS.fromJson(jJWKS);
     final jKey = jwkSet.getKeyByKid(kid);
     _usePKey = jKey.getRSAPublicKey();
-
-    // _usePKey = await Utilities.getJWK(jwks, kid);
-    print('get _usePKey: ${_usePKey.modulus}');
-    print('_usePKey.bitLength: ${_usePKey.modulus.bitLength}');
   } catch (e) {
     throw Exception(
         'Unable to acquire public key for signature verification! $e.');
@@ -61,7 +55,6 @@ Future<bool> _verifyRS256Signature(
     try {
       final ivmVerifier =
           IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
-      print(' verifyRS256?: ${ivmVerifier.verifyRS256()}');
 
       return ivmVerifier.verifyRS256();
     } catch (e) {

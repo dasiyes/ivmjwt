@@ -1,5 +1,4 @@
 import 'package:ivmjwt/ivmjwt.dart';
-import 'dart:convert';
 
 Future<void> main() async {
   final ivmjwt = IvmJWT();
