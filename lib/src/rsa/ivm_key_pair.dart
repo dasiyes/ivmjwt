@@ -2,17 +2,17 @@ part of '../../ivmjwt.dart';
 
 /// Generate RSA key pair
 ///
-/// Overview by [pointycastle]
+/// Overview by [pointycastle]:
 /// The RSA (Rivest Shamir Adleman) algorithm is an asymmetric cryptographic algorithm (also known as a public-key algorithm). It uses two keys: a public key that is used for encrypting data and verifying signatures, and a private key that is used for decrypting data and creating signatures.
 ///
 
 class IvmKeyPair {
+  IvmKeyPair({this.ivmBitStrength});
+
   /// The pair of Keys
   AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> _pair;
   int ivmBitStrength;
   Uuid _kid;
-
-  IvmKeyPair({int this.ivmBitStrength});
 
   /// To generate a pair of RSA keys:
   ///

@@ -6,7 +6,6 @@
 library ivmjwt;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:mirrors';
 import 'dart:typed_data';

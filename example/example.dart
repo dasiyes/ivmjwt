@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:ivmjwt/ivmjwt.dart';
 
-/// Create a new JWT
+/// Create new, RS256 signed JWT
 ///
-Future<void> main() async {
+Future<void> issue() async {
   /// The token expire time is composed based on a property from claims "maxAge"
   /// If this property  is missing it will default to 3600. If the claims has
   /// the 'exp' key - its value will be used directly instead of calculating it
@@ -26,5 +26,16 @@ Future<void> main() async {
   /// {"token": "xxx", "publicKey": {"keys":[]}}
   ///```
   ///
+  print(result);
+}
+
+/// Verify RS256 signed JWT
+///
+void verify() async {
+  const token = 'token_value';
+  const jwks = '{"keys": []}';
+
+  /// Expect bool if the token is valid or not
+  final result = await IvmJWT.decodeJWTRS256(token, jwks);
   print(result);
 }
