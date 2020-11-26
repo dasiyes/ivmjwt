@@ -1,8 +1,8 @@
 name: ivmjwt
-version: 0.0.1
+version: 0.1.0
 description: >-
   This library is designed to work with JWT (RFC7519).
-  The primerary purpose is verify token signed with RS256
+  The primerary purpose is issue and verify tokens signed RSA (SHA-256)
 homepage: http://ivmanto.dev/ivmjwt
 
 environment:
