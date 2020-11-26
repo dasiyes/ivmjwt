@@ -1,4 +1,4 @@
-v. 1.0.0    initial release.
-            Issue RSA signed JWTokens. Verify JWToken signed with RSA.
+v. 0.1.0    first beta release.
+            Issue RSA [SHA-256] signed JWTokens. Verify JWToken signed with RSA [SHA-256].
 
 v. 0.0.1    initial work started.

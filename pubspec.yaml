@@ -3,7 +3,7 @@ version: 0.1.0
 description: >-
   This library is designed to work with JWT (RFC7519).
   The primerary purpose is issue and verify tokens signed RSA (SHA-256)
-homepage: http://ivmanto.dev/ivmjwt
+homepage: https://github.com/dasiyes/ivmjwt
 
 environment:
   sdk: '>=2.10.0 <3.0.0'
