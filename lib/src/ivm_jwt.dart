@@ -44,12 +44,12 @@ class IvmJWT extends JWT {
 
   /// Issue RS256 signed JWT [RFC7519]:
   ///
-  /// follow the steps from [RFC7519 section 7.1] - referenced aboved in
+  /// follow the steps from [RFC7519 section 7.1] - referenced above in
   /// this class
   @override
   Future<Map<String, dynamic>> issueJWTRS256() async {
     // The token claims check - this._claimsSet
-    // TODO: [dev] verify if the required claims are available
+    // TODO: [dev] verify the steps 1 to 6 from the plan above are in place.
 
     /// 1. Generate key pair
     ///
@@ -77,7 +77,7 @@ class IvmJWT extends JWT {
     final _header =
         '{\"alg\": \"RS256\", \"typ\": \"JWT\", \"kid\": \"${kid.toString()}\"}';
 
-    final _claimsStr = json.encode(_claims.toJson());
+    final _claimsStr = json.encode(_claimsSet.toJson());
     final dataToSign = Uint8List.fromList('${_header}.${_claimsStr}'.codeUnits);
 
     /// 3. Use function [sign] to sign the segments data with the private key

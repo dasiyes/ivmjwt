@@ -101,6 +101,21 @@ SegmentPayload _SegmentPayloadFromJson(Map<String, dynamic> jpld) {
     audList.add(jpld['aud'].toString());
   }
 
+  // Calculating exp from maxAge or
+  // if exists - verify if its value is in the future
+  if (jpld['maxAge'] != null) {
+    try {
+      final ma = int.parse(jpld['maxAge'].toString());
+      jpld['exp'] = Utilities.currentTimeInSMS() + ma;
+    } catch (e) {
+      jpld['exp'] = Utilities.currentTimeInSMS() + 3600;
+    }
+  } else {
+    if (jpld['exp'] == null) {
+      jpld['exp'] = Utilities.currentTimeInSMS() + 3600;
+    }
+  }
+
   // Instntiate the object
   final sgp = SegmentPayload(
     iss: jpld['iss'].toString(),
