@@ -2,7 +2,7 @@ part of '../../ivmjwt.dart';
 
 /// RSA Signer
 ///
-/// by [pointycastle]
+/// by [pointycastle]:
 /// To create a signature:
 ///
 /// 1. Obtain an RSAPrivateKey.
@@ -31,15 +31,16 @@ class IvmSignerRSA256 {
   Uint8List _dataToSign;
   Uint8List _signedBytes;
 
+  // ignore: sort_constructors_first
   IvmSignerRSA256(RSAPrivateKey privateKey, Uint8List dataToSign) {
     if (privateKey == null) {
       throw Exception('Invalid key provided!');
     }
-    this._privateKey = privateKey;
+    _privateKey = privateKey;
     if (dataToSign == null || dataToSign.isEmpty) {
       throw Exception('No data to sign!');
     }
-    this._dataToSign = dataToSign;
+    _dataToSign = dataToSign;
   }
 
   /// PointyCastle example
@@ -55,20 +56,14 @@ class IvmSignerRSA256 {
   }
 
   Uint8List get signedBytes {
-    if (this._signedBytes == null) {
-      this._signedBytes = rsaSign(this._privateKey, this._dataToSign);
-      return this._signedBytes;
+    if (_signedBytes == null) {
+      return rsaSign(_privateKey, _dataToSign);
     }
-    return this._signedBytes;
+    return _signedBytes;
   }
 
   String getBase64Signature() {
-    String signB64;
-
-    if (this._signedBytes == null) {
-      this._signedBytes = signedBytes;
-    }
-    signB64 = base64Url.encode(this._signedBytes);
-    return signB64;
+    _signedBytes ??= signedBytes;
+    return base64Url.encode(_signedBytes);
   }
 }

@@ -51,7 +51,7 @@ class IvmKeyPair {
 
     final seedSource = Random.secure();
     final seeds = <int>[];
-    for (int i = 0; i < 32; i++) {
+    for (var i = 0; i < 32; i++) {
       seeds.add(seedSource.nextInt(255));
     }
     secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
@@ -66,70 +66,69 @@ class IvmKeyPair {
   /// in the class instantiation.
   ///
   void generateAPair() {
-    this._kid = Uuid.nil;
-    this._pair = _generateRSAKeyPair(_ivmSecureRandom(),
+    _kid = Uuid.nil;
+    _pair = _generateRSAKeyPair(_ivmSecureRandom(),
         bitStrength: ivmBitStrength ?? 2048);
   }
 
   /// Getter for the keyPair
   AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> get keyPair {
-    if (this._pair == null) {
+    if (_pair == null) {
       generateAPair();
       return this._pair;
     }
-    return this._pair;
+    return _pair;
   }
 
   /// Getter for the public key in RSAPublicKey format
   RSAPublicKey get publicKey {
-    if (this._pair == null) {
+    if (_pair == null) {
       generateAPair();
     }
-    return this._pair.publicKey;
+    return _pair.publicKey;
   }
 
   /// Getter for the private key in RSAPrivateKey format
   RSAPrivateKey get privateKey {
-    if (this._pair == null) {
+    if (_pair == null) {
       generateAPair();
     }
-    return this._pair.privateKey;
+    return _pair.privateKey;
   }
 
   /// Getter for the keyPair ID.
   Uuid get kid {
-    if (this._pair == null) {
-      this._kid = Uuid.nil;
-      return this._kid;
+    if (_pair == null) {
+      return Uuid.nil;
     }
-    return this._kid;
+    return _kid;
   }
 
   /// Get the public key as JWK
-  /// According to [RFC7518 section 6.3.1] for RSA Public key the memebers [n](modulus) and [e](exponent) MUST be presented alongside with mandatory [kty] key.
+  /// According to [RFC7518 section 6.3.1] for RSA Public key the memebers [n](modulus) and [e](exponent) MUST be presented alongside with mandatory [kty]: key.
   ///
   /// Algorithm is handled by [RFC7518 section 7.1.1] as registration template.
   /// For this key pair the default alg is RS256.
   Map<String, dynamic> getPublicKeyAsJWK() {
-    if (this._pair != null) {
+    if (_pair != null) {
       /// Get the public key's modulus
       final n =
-          base64Url.encode(Utilities.writeBigInt(this._pair.publicKey.modulus));
+          base64Url.encode(Utilities.writeBigInt(_pair.publicKey.modulus));
 
       /// Get the public key's exponent
       final e = base64Url
-          .encode(Utilities.writeBigInt(this._pair.publicKey.publicExponent));
+          .encode(Utilities.writeBigInt(_pair.publicKey.publicExponent));
 
       /// Get the keys' id
-      final k = this.kid;
+      final k = kid;
 
-      Map<String, dynamic> rsaJWK = {
-        "kty": "RSA",
-        "n": '$n',
-        "e": '$e',
-        "alg": "RS256",
-        "use": "sig",
-        "kid": '$k'
+      final rsaJWK = <String, dynamic>{
+        'kty': 'RSA',
+        'n': '$n',
+        'e': '$e',
+        'alg': 'RS256',
+        'use': 'sig',
+        'kid': '$k'
       };
 
       return rsaJWK;

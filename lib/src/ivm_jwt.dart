@@ -120,6 +120,13 @@ class IvmJWT extends JWT {
     var validSignature = false;
     var timeValid = false;
 
+    // validate params
+    if (token.isEmpty) {
+      return false;
+    }
+    if (jwks.isEmpty) {
+      return false;
+    }
     // Step-1 Check the token integrity
     final _integrity = await _checkTokenIntegrity(token);
 
@@ -162,11 +169,11 @@ class IvmJWT extends JWT {
     /// It must run over json validation first.
     //
     // Verify if the jwks is a valid JSON
+    final jv = JsonValidator(jwks);
     try {
-      final jv = JsonValidator(jwks);
       validJWKS = jv.validate();
     } catch (e) {
-      throw Exception('Error validating to json the provided JWKs value! $e.');
+      throw Exception('Error validating the provided JWKs value to json! $e.');
     }
 
     // Step-2 Check the signature
