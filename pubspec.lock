@@ -231,7 +231,7 @@ packages:
       name: ivmjv
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.3"
   js:
     dependency: transitive
     description:
