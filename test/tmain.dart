@@ -13,8 +13,14 @@ void main() {
       createJwkJwks();
     });
 
-    test('JWT init and creation', () {
-      initJWT();
+    test('JWT init and creation', initJWT);
+
+    test('GID verify', () async {
+      // verifyGID();
+    });
+
+    test('Own token verify', () async {
+      verifyOwnIssuedJWT();
     });
   });
 }

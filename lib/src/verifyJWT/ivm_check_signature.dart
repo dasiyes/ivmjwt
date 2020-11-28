@@ -55,7 +55,6 @@ Future<bool> _verifyRS256Signature(
     try {
       final ivmVerifier =
           IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
-
       return ivmVerifier.verifyRS256();
     } catch (e) {
       throw Exception('Error raised while verifying signature! $e');
