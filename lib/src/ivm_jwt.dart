@@ -169,12 +169,12 @@ class IvmJWT extends JWT {
     /// It must run over json validation first.
     //
     // Verify if the jwks is a valid JSON
-    final jv = JsonValidator('');
+    final jv = JsonValidator();
     try {
       if (jv == null || jwks.isEmpty) {
         print('   *** wrong validator');
       }
-      validJWKS = jv.validate(jwks);
+      validJWKS = await jv.validate(jwks);
     } catch (e) {
       throw Exception('Error validating the provided JWKs value to json! $e.');
     }
