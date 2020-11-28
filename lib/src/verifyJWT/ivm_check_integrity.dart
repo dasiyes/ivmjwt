@@ -42,7 +42,8 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
 
   // Verify if the header is a valid JSON
   try {
-    validHeader = JsonValidator(jwtHeader).validate();
+    final jv = JsonValidator();
+    validHeader = await jv.validate(jwtHeader);
     // validHeader = await Utilities.validateSegmentToJSON(jwtHeader);
   } catch (e) {
     throw Exception('Error validating header segment! $e.');
@@ -58,8 +59,8 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
 
   // Verify if the payload is a valid JSON
   try {
-    validPayload = JsonValidator(jwtPayload).validate();
-    // validPayload = await Utilities.validateSegmentToJSON(jwtPayload);
+    final jv = JsonValidator();
+    validPayload = await jv.validate(jwtPayload);
   } catch (e) {
     throw Exception('Error validating payload segment! $e.');
   }
