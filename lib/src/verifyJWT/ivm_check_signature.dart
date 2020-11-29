@@ -43,10 +43,11 @@ Future<bool> _verifyRS256Signature(
   if (alg == 'RS256') {
     // Prepare the token's signature (segment-3) and the header and the payload
     // as combined signedData - all in Uint8List format;
-    final u8lOrgSignature = base64Url.decode(tokenSegments[2]);
+    final u8lOrgSignature =
+        base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-    final bhd = base64Url.decode(tokenSegments[0]);
-    final bpd = base64Url.decode(tokenSegments[1]);
+    final bhd = base64Url.decode(base64Url.normalize(tokenSegments[0]));
+    final bpd = base64Url.decode(base64Url.normalize(tokenSegments[1]));
 
     final bSignedData = <List<int>>[bhd, '.'.codeUnits, bpd];
     final signedData =

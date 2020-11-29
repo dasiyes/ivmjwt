@@ -50,7 +50,7 @@ class IvmSignerRSA256 {
     signer.init(
         true, PrivateKeyParameter<RSAPrivateKey>(privateKey)); // true=sign
 
-    final sig = signer.generateSignature(dataToSign);
+    final sig = signer.generateSignature(dataToSign, normalize: true);
 
     return sig.bytes;
   }
