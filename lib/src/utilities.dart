@@ -9,13 +9,14 @@ class Utilities {
       // ignore: avoid_positional_boolean_parameters
       [bool decodeL1 = false]) async {
     // Decode in List of integers. Note: base64 normalization required!
-    final encIntList = base64Url.decode(base64.normalize(encodedString));
+    final encIntList = base64Url.decode(encodedString);
 
     // Decode in UTF string
     try {
       if (decodeL1) {
         return latin1.decode(encIntList);
       }
+      // return utf8.decode(encIntList, allowMalformed: false);
       return utf8.decode(encIntList, allowMalformed: false);
     } catch (e) {
       rethrow;
@@ -33,6 +34,7 @@ class Utilities {
         bytes = latin1.encode(source);
       } else {
         bytes = Uint8List.fromList(utf8.encode(source));
+        //does not work: bytes = Uint8List.fromList(source.codeUnits);
       }
       return base64Url.encode(bytes);
     } catch (e) {

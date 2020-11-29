@@ -61,8 +61,8 @@ class IvmRS256JWK extends JWK {
   /// Extract the public key from JWK json format as RSAPublicKey
   ///
   RSAPublicKey getRSAPublicKey() {
-    final _eBytes = base64Url.decode(base64Url.normalize(e));
-    final _nBytes = base64Url.decode(base64Url.normalize(n));
+    final _eBytes = base64Url.decode(e);
+    final _nBytes = base64Url.decode(n);
 
     final modulus = Utilities.readBytes(_nBytes);
     final exponent = Utilities.readBytes(_eBytes);

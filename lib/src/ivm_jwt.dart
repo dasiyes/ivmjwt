@@ -89,8 +89,8 @@ class IvmJWT extends JWT {
       /// 4. Compose the 3 segments of the JWToken as Base64 string separated
       /// with comma (.)
       ///
-      final segment1 = await Utilities.base64UrlEncode(_header);
-      final segment2 = await Utilities.base64UrlEncode(_claimsStr);
+      final segment1 = base64Url.encode(_header.codeUnits);
+      final segment2 = base64Url.encode(_claimsStr.codeUnits);
       final segment3 = sign.getBase64Signature();
 
       // Returning the token and the publicKey as JWKS

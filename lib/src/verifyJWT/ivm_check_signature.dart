@@ -43,13 +43,14 @@ Future<bool> _verifyRS256Signature(
   if (alg == 'RS256') {
     // Prepare the token's signature (segment-3) and the header and the payload
     // as combined signedData - all in Uint8List format;
-    final u8lOrgSignature =
-        base64Url.decode(base64Url.normalize(tokenSegments[2]));
+    final u8lOrgSignature = base64Url.decode(tokenSegments[2]);
 
-    final hd = await Utilities.base64UrlDecode(tokenSegments[0]);
-    final pd = await Utilities.base64UrlDecode(tokenSegments[1]);
+    final bhd = base64Url.decode(tokenSegments[0]);
+    final bpd = base64Url.decode(tokenSegments[1]);
 
-    final signedData = utf8.encode('${hd}.${pd}') as Uint8List;
+    final bSignedData = <List<int>>[bhd, '.'.codeUnits, bpd];
+    final signedData =
+        Uint8List.fromList(bSignedData.expand((x) => x).toList());
 
     // return the result of Verify the signature
     try {
