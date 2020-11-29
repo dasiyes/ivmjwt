@@ -29,8 +29,11 @@ Future<bool> _verifyRS256Signature(
   // step-PREP-1: get the public key:
   //
   try {
+    /// Replace whitespaces (CRLF, LF, TAB)
+    final _jwks = jwks.replaceAll(RegExp(r'\s'), '');
+
     // Work with the JWKS to get the right jwkey and then return the RSAPublicKey from it.
-    final jJWKS = json.decode(jwks) as Map<String, dynamic>;
+    final jJWKS = json.decode(_jwks) as Map<String, dynamic>;
     final jwkSet = IvmRS256JWKS.fromJson(jJWKS);
     final jKey = jwkSet.getKeyByKid(kid);
     _usePKey = jKey.getRSAPublicKey();

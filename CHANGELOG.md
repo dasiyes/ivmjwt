@@ -1,3 +1,5 @@
+v. 0.1.3    extended tests. syntax fixes.
+
 v. 0.1.2    fixes for async jvalid.
 
 v. 0.1.1    few minor fixes.

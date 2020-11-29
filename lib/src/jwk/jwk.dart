@@ -22,7 +22,8 @@ abstract class JWK {
   ///  member MUST be present in a JWK.
   ///
   // ignore: avoid_unused_constructor_parameters, non_constant_identifier_names
-  JWK(String kty, {use, alg, kid, key_ops, n, e}) {
+  JWK(String kty,
+      {this.use, this.alg, this.kid, this.key_ops, this.n, this.e}) {
     if (['EC', 'RSA', 'oct'].contains(kty)) {
       _kty = kty;
     } else {

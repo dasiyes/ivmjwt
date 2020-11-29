@@ -15,10 +15,6 @@ void main() {
 
     test('JWT init and creation', initJWT);
 
-    test('GID verify', () async {
-      // verifyGID();
-    });
-
     test('Own token verify', () async {
       verifyOwnIssuedJWT();
     });
