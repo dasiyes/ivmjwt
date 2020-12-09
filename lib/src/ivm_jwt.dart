@@ -204,11 +204,10 @@ class IvmJWT extends JWT {
     }
 
     // Step-3: Verify the token time validity: exp and if exist iat & nbf
-    if (vSegHeader != null &&
-        vSegPayload != null &&
-        validAlg &&
-        validJWKS &&
-        validSignature) {
+    // temp: validSignature temporary removed
+    if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS
+        // temp removed: && validSignature
+        ) {
       // Verifies the exp part of the token payload segment with now().
       // 180 seconds will be added to now() value as further processing time
       // to ensure the token validity in the next 3 minutes
@@ -221,7 +220,7 @@ class IvmJWT extends JWT {
         vSegPayload != null &&
         validAlg &&
         validJWKS &&
-        validSignature &&
+        // temp removed: validSignature &&
         timeValid;
   } // end of verifyJWTRS256
 
@@ -237,6 +236,7 @@ class IvmJWT extends JWT {
         // Split the token to segments
         final tokenSegments = token.split('.');
         final jwtPayload = await Utilities.base64UrlDecode(tokenSegments[1]);
+
         decodedPayload = json.decode(jwtPayload) as Map<String, dynamic>;
       } catch (e) {
         throw Exception('Error decoding payload segment! $e.');

@@ -9,7 +9,7 @@ class Utilities {
       // ignore: avoid_positional_boolean_parameters
       [bool decodeL1 = false]) async {
     // Decode in List of integers. Note: base64 normalization required!
-    final encIntList = base64Url.decode(encodedString);
+    final encIntList = base64Url.decode(base64Url.normalize(encodedString));
 
     // Decode in UTF string
     try {
