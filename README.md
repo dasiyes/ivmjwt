@@ -1,6 +1,6 @@
 # ivmJWT Library
 
-[![Coverage Status](https://coveralls.io/repos/github/dasiyes/ivmjwt/badge.svg?branch=master)](https://coveralls.io/github/dasiyes/ivmjwt?branch=master)
+[![codecov](https://codecov.io/gh/dasiyes/ivmjwt/branch/master/graph/badge.svg?token=GWJLWDQCG9)](https://codecov.io/gh/dasiyes/ivmjwt)
 
 ## ivmJWT is a helper library for working with JWT
 
