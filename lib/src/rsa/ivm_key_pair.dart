@@ -37,7 +37,7 @@ class IvmKeyPair {
     // Cast the generated key pair into the RSA key types
     final ivmPublic = pair.publicKey as RSAPublicKey;
     final ivmPrivate = pair.privateKey as RSAPrivateKey;
-    this._kid = Uuid(uuid.v1());
+    _kid = Uuid(uuid.v1());
 
     // return the generated keys!
     return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
@@ -75,7 +75,7 @@ class IvmKeyPair {
   AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> get keyPair {
     if (_pair == null) {
       generateAPair();
-      return this._pair;
+      return _pair;
     }
     return _pair;
   }

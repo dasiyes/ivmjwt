@@ -1,7 +1,7 @@
-import 'package:ivmjwt/ivmjwt.dart';
-import 'package:pointycastle/pointycastle.dart';
-import 'package:test/test.dart';
 import 'dart:convert';
+
+import 'package:ivmjwt/ivmjwt.dart';
+import 'package:test/test.dart';
 
 /// Unit testing the JWT object
 ///

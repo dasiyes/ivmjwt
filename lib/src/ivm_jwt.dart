@@ -205,9 +205,11 @@ class IvmJWT extends JWT {
 
     // Step-3: Verify the token time validity: exp and if exist iat & nbf
     // temp: validSignature temporary removed
-    if (vSegHeader != null && vSegPayload != null && validAlg && validJWKS
-        // temp removed: && validSignature
-        ) {
+    if (vSegHeader != null &&
+        vSegPayload != null &&
+        validAlg &&
+        validJWKS &&
+        validSignature) {
       // Verifies the exp part of the token payload segment with now().
       // 180 seconds will be added to now() value as further processing time
       // to ensure the token validity in the next 3 minutes
@@ -220,7 +222,7 @@ class IvmJWT extends JWT {
         vSegPayload != null &&
         validAlg &&
         validJWKS &&
-        // temp removed: validSignature &&
+        validSignature &&
         timeValid;
   } // end of verifyJWTRS256
 
