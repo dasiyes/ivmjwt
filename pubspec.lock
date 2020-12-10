@@ -147,7 +147,7 @@ packages:
       name: coverage
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.1"
+    version: "0.13.11"
   crypto:
     dependency: transitive
     description:
@@ -231,7 +231,7 @@ packages:
       name: ivmjv
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.5"
   js:
     dependency: transitive
     description:

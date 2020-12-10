@@ -76,12 +76,12 @@ class IvmRS256JWK extends JWK {
 // ignore: non_constant_identifier_names
 IvmRS256JWK _IvmRS256JWKFromJson(Map<String, dynamic> json) {
   try {
-    final pk = IvmRS256JWK(json['kty'].toString());
-    pk.alg = json['alg'] as String;
-    pk.use = json['use'] as String;
-    pk.kid = json['kid'] as String;
-    pk.n = json['n'] as String;
-    pk.e = json['e'] as String;
+    final pk = IvmRS256JWK(json['kty'].toString(),
+        alg: json['alg'].toString(),
+        use: json['use'].toString(),
+        kid: json['kid'].toString(),
+        n: json['n'].toString(),
+        e: json['e'].toString());
     return pk;
   } catch (e) {
     rethrow;

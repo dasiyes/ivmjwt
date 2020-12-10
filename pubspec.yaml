@@ -1,5 +1,5 @@
 name: ivmjwt
-version: 0.1.1
+version: 0.1.4
 description: >-
   This library is designed to work with JWT (RFC7519).
   The primerary purpose is issue and verify tokens signed RSA (SHA-256)
@@ -13,7 +13,7 @@ dependencies:
   json_annotation: ^3.0.0
   uuid_type: ^1.1.1
   meta: ^1.2.4
-  ivmjv: ^0.1.1
+  ivmjv: ^0.1.5
 
 dev_dependencies:
   test: ^1.5.0

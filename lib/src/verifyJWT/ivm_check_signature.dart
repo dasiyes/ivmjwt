@@ -29,8 +29,11 @@ Future<bool> _verifyRS256Signature(
   // step-PREP-1: get the public key:
   //
   try {
+    /// Replace whitespaces (CRLF, LF, TAB)
+    final _jwks = jwks.replaceAll(RegExp(r'\s'), '');
+
     // Work with the JWKS to get the right jwkey and then return the RSAPublicKey from it.
-    final jJWKS = json.decode(jwks) as Map<String, dynamic>;
+    final jJWKS = json.decode(_jwks) as Map<String, dynamic>;
     final jwkSet = IvmRS256JWKS.fromJson(jJWKS);
     final jKey = jwkSet.getKeyByKid(kid);
     _usePKey = jKey.getRSAPublicKey();
@@ -46,16 +49,17 @@ Future<bool> _verifyRS256Signature(
     final u8lOrgSignature =
         base64Url.decode(base64Url.normalize(tokenSegments[2]));
 
-    final hd = await Utilities.base64UrlDecode(tokenSegments[0]);
-    final pd = await Utilities.base64UrlDecode(tokenSegments[1]);
+    final bhd = base64Url.decode(base64Url.normalize(tokenSegments[0]));
+    final bpd = base64Url.decode(base64Url.normalize(tokenSegments[1]));
 
-    final signedData = utf8.encode('${hd}.${pd}') as Uint8List;
+    final bSignedData = <List<int>>[bhd, '.'.codeUnits, bpd];
+    final signedData =
+        Uint8List.fromList(bSignedData.expand((x) => x).toList());
 
     // return the result of Verify the signature
     try {
       final ivmVerifier =
           IvmVerifierRSA256(_usePKey, signedData, u8lOrgSignature);
-
       return ivmVerifier.verifyRS256();
     } catch (e) {
       throw Exception('Error raised while verifying signature! $e');

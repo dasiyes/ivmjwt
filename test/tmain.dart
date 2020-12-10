@@ -13,8 +13,16 @@ void main() {
       createJwkJwks();
     });
 
-    test('JWT init and creation', () {
-      initJWT();
+    test('JWT init and creation', initJWT);
+
+    test('Own token verify', () async {
+      verifyOwnIssuedJWT();
+    });
+
+    test('Unit tests _verifyJWTRS256', () async {
+      testIvmCheckIntegrity();
+      testIvmCheckClaims();
+      testIvmCheckSignature();
     });
   });
 }

@@ -89,8 +89,8 @@ class IvmJWT extends JWT {
       /// 4. Compose the 3 segments of the JWToken as Base64 string separated
       /// with comma (.)
       ///
-      final segment1 = await Utilities.base64UrlEncode(_header);
-      final segment2 = await Utilities.base64UrlEncode(_claimsStr);
+      final segment1 = base64Url.encode(_header.codeUnits);
+      final segment2 = base64Url.encode(_claimsStr.codeUnits);
       final segment3 = sign.getBase64Signature();
 
       // Returning the token and the publicKey as JWKS
@@ -120,6 +120,13 @@ class IvmJWT extends JWT {
     var validSignature = false;
     var timeValid = false;
 
+    // validate params
+    if (token.isEmpty) {
+      return false;
+    }
+    if (jwks.isEmpty) {
+      return false;
+    }
     // Step-1 Check the token integrity
     final _integrity = await _checkTokenIntegrity(token);
 
@@ -162,11 +169,14 @@ class IvmJWT extends JWT {
     /// It must run over json validation first.
     //
     // Verify if the jwks is a valid JSON
+    final jv = JsonValidator();
     try {
-      final jv = JsonValidator(jwks);
-      validJWKS = jv.validate();
+      if (jv == null || jwks.isEmpty) {
+        print('   *** wrong validator');
+      }
+      validJWKS = await jv.validate(jwks);
     } catch (e) {
-      throw Exception('Error validating to json the provided JWKs value! $e.');
+      throw Exception('Error validating the provided JWKs value to json! $e.');
     }
 
     // Step-2 Check the signature
@@ -194,6 +204,7 @@ class IvmJWT extends JWT {
     }
 
     // Step-3: Verify the token time validity: exp and if exist iat & nbf
+    // temp: validSignature temporary removed
     if (vSegHeader != null &&
         vSegPayload != null &&
         validAlg &&
@@ -227,6 +238,7 @@ class IvmJWT extends JWT {
         // Split the token to segments
         final tokenSegments = token.split('.');
         final jwtPayload = await Utilities.base64UrlDecode(tokenSegments[1]);
+
         decodedPayload = json.decode(jwtPayload) as Map<String, dynamic>;
       } catch (e) {
         throw Exception('Error decoding payload segment! $e.');

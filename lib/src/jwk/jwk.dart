@@ -1,6 +1,6 @@
 part of '../../ivmjwt.dart';
 
-/// JWK - JSON Web Key [RFC7517]
+/// JWK - JSON Web Key [RFC7517]:
 ///
 /// [Ivmanto]: This class will respect RFC7517 but not in any mean implement it in full.
 ///
@@ -17,12 +17,19 @@ abstract class JWK {
   /// The "kty" (key type) parameter identifies the cryptographic algorithm
   ///  family used with the key, such as "RSA" or "EC".  "kty" values should
   ///  either be registered in the IANA "JSON Web Key Types" registry
-  ///  established by [JWA] or be a value that contains a Collision-
+  ///  established by [JWA]: or be a value that contains a Collision-
   ///  Resistant Name.  The "kty" value is a case-sensitive string.  This
   ///  member MUST be present in a JWK.
   ///
   // ignore: avoid_unused_constructor_parameters, non_constant_identifier_names
-  JWK(String kty, {use, alg, kid, key_ops, n, e}) {
+  JWK(String kty,
+      {this.use,
+      this.alg,
+      this.kid,
+      // ignore: non_constant_identifier_names
+      this.key_ops,
+      this.n,
+      this.e}) {
     if (['EC', 'RSA', 'oct'].contains(kty)) {
       _kty = kty;
     } else {
@@ -31,13 +38,14 @@ abstract class JWK {
   }
 
   /// Instantiate an object from a json object
+  // ignore: avoid_unused_constructor_parameters
   JWK.fromJson(Map<String, dynamic> json);
 
   /// "kty" (Key Type) Parameter
   ///
-  /// The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or be a value that contains a Collision- Resistant Name. The "kty" value is a case-sensitive string. This member [MUST] be present in a JWK.
+  /// The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA]: or be a value that contains a Collision- Resistant Name. The "kty" value is a case-sensitive string. This member [MUST]: be present in a JWK.
   ///
-  /// A list of defined "kty" values can be found in the IANA "JSON Web Key Types" registry established by [JWA]; the initial contents of this registry are the values defined in [RFC7518 Section 6.1]: of [JWA]:.
+  /// A list of defined "kty" values can be found in the IANA "JSON Web Key Types" registry established by [JWA]:; the initial contents of this registry are the values defined in [RFC7518 Section 6.1]: of [JWA]:.
   ///
   String _kty;
 
@@ -53,7 +61,7 @@ abstract class JWK {
 
   /// "alg" (Algorithm) Parameter
   ///
-  /// The "alg" (algorithm) parameter identifies the algorithm intended for use with the key. The values used should either be registered in the IANA "JSON Web Signature and Encryption Algorithms" registry established by [JWA] or be a value that contains a Collision- Resistant Name. The "alg" value is a case-sensitive ASCII string. Use of this member is OPTIONAL.
+  /// The "alg" (algorithm) parameter identifies the algorithm intended for use with the key. The values used should either be registered in the IANA "JSON Web Signature and Encryption Algorithms" registry established by [JWA]: or be a value that contains a Collision- Resistant Name. The "alg" value is a case-sensitive ASCII string. Use of this member is OPTIONAL.
   ///
   String alg;
 

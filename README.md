@@ -1,4 +1,7 @@
 # ivmJWT Library
+
+[![codecov](https://codecov.io/gh/dasiyes/ivmjwt/branch/master/graph/badge.svg?token=GWJLWDQCG9)](https://codecov.io/gh/dasiyes/ivmjwt)
+
 ## ivmJWT is a helper library for working with JWT
 
 This library will respect the standard [RFC7519] to a certain extend but not tested for its complete compliance.  

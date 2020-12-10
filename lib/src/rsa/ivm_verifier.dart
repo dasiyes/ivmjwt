@@ -2,7 +2,7 @@ part of '../../ivmjwt.dart';
 
 /// RSA Verifier
 ///
-/// by [pointycastle]
+/// by [pointycastle]:
 /// To verify a signature:
 ///
 /// 1. Obtain an RSAPublicKey.
@@ -11,25 +11,24 @@ part of '../../ivmjwt.dart';
 /// 4. Invoke the object's verifySignature method with the data that was supposedly signed and the signature.
 ///
 class IvmVerifierRSA256 {
-  RSAPublicKey _publicKey;
-  Uint8List _signedData;
-  Uint8List _signature;
-
   IvmVerifierRSA256(
       RSAPublicKey publicKey, Uint8List signedData, Uint8List signature) {
     if (publicKey == null) {
       throw Exception('Invalid key provided!');
     }
-    this._publicKey = publicKey;
+    _publicKey = publicKey;
     if (signedData == null || signedData.isEmpty) {
       throw Exception('Signed data not provided!');
     }
-    this._signedData = signedData;
+    _signedData = signedData;
     if (signature == null || signature.isEmpty) {
       throw Exception('Signature is not provided!');
     }
-    this._signature = signature;
+    _signature = signature;
   }
+  RSAPublicKey _publicKey;
+  Uint8List _signedData;
+  Uint8List _signature;
 
   /// PointyCastle example
   bool rsaVerify(
@@ -49,6 +48,6 @@ class IvmVerifierRSA256 {
   }
 
   bool verifyRS256() {
-    return rsaVerify(this._publicKey, this._signedData, this._signature);
+    return rsaVerify(_publicKey, _signedData, _signature);
   }
 }
