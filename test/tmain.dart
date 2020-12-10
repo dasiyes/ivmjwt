@@ -18,5 +18,11 @@ void main() {
     test('Own token verify', () async {
       verifyOwnIssuedJWT();
     });
+
+    test('Unit tests _verifyJWTRS256', () async {
+      testIvmCheckIntegrity();
+      testIvmCheckClaims();
+      testIvmCheckSignature();
+    });
   });
 }

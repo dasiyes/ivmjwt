@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 import 'dart:convert';
 
 /// Unit testing the JWT object
+///
 void initJWT() {
   // TODO: [dev] implement JWT test suite
   /// T1:
@@ -60,3 +61,31 @@ void verifyOwnIssuedJWT() async {
   expect(result['ivmanto'], 'dev');
   expect(result.containsKey('exp'), true);
 }
+
+/// Units testing _verifyJWTRS256 method
+///
+/// tests Integrity
+///
+void testIvmCheckIntegrity() async {
+  // Creating the claims
+  final _claims = json.decode(
+          '{\"iss\": \"Ivmanto.dev\", \"maxAge\": 7200, \"ivmanto\": \"verify\"}')
+      as Map<String, dynamic>;
+
+  /// Instantiate segment payload and ivmJWT objects
+  final segmentPayload = SegmentPayload.fromJson(_claims);
+  final ivmjwt = IvmJWT(segmentPayload);
+
+  /// call the issue method for RS256 signed token creation.
+  final obj = await ivmjwt.issueJWTRS256();
+  final token = obj['token'].toString();
+  await IvmJWT.decodeJWTRS256(token, '');
+}
+
+/// tests Claims
+///
+void testIvmCheckClaims() async {}
+
+/// test Signature
+///
+void testIvmCheckSignature() async {}

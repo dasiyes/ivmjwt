@@ -1,3 +1,5 @@
+v. 0.1.4    fixes in base64Url encode decode
+
 v. 0.1.3    extended tests. syntax fixes.
 
 v. 0.1.2    fixes for async jvalid.

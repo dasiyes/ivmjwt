@@ -1,4 +1,7 @@
 # ivmJWT Library
+
+[![Coverage Status](https://coveralls.io/repos/github/dasiyes/ivmjwt/badge.svg?branch=master)](https://coveralls.io/github/dasiyes/ivmjwt?branch=master)
+
 ## ivmJWT is a helper library for working with JWT
 
 This library will respect the standard [RFC7519] to a certain extend but not tested for its complete compliance.  
