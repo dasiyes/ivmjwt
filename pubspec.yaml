@@ -13,10 +13,11 @@ dependencies:
   json_annotation: ^3.0.0
   uuid_type: ^1.1.1
   meta: ^1.2.4
-  ivmjv: ^0.1.5
+  ivmjv: ^0.1.6
 
 dev_dependencies:
   test: ^1.5.0
+  test_process: ^1.0.5
   json_serializable: ^3.5.0
   build_runner: ^1.10.4
   build_test: ^1.3.0

@@ -45,9 +45,8 @@ Future<Map<String, dynamic>> _checkTokenIntegrity(String token) async {
   try {
     final jv = JsonValidator();
     validHeader = await jv.validate(jwtHeader);
-    // validHeader = await Utilities.validateSegmentToJSON(jwtHeader);
   } catch (e) {
-    throw Exception('Error validating header segment! $e.');
+    throw Exception('Error json validating header segment! $e.');
   }
 
   /// Base64url-decode the Payload, ensuring that no line breaks, whitespace, or other additional characters have been used, and verify that the decoded Payload is a valid JSON object.

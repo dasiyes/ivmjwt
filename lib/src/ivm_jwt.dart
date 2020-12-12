@@ -122,9 +122,12 @@ class IvmJWT extends JWT {
 
     // validate params
     if (token.isEmpty) {
+      print('[_verifyJWTRS256]: WARNING Unable to verify an empty token!');
       return false;
     }
     if (jwks.isEmpty) {
+      print(
+          '[_verifyJWTRS256]: WARNING Unable to verify the token with empty keys set!');
       return false;
     }
     // Step-1 Check the token integrity

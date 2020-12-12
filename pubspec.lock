@@ -231,7 +231,7 @@ packages:
       name: ivmjv
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.5"
+    version: "0.1.6"
   js:
     dependency: transitive
     description:
@@ -470,6 +470,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.11+1"
+  test_process:
+    dependency: "direct dev"
+    description:
+      name: test_process
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.5"
   timing:
     dependency: transitive
     description:
