@@ -1,3 +1,5 @@
+v. 0.1.5    extended tests suite
+
 v. 0.1.4    fixes in base64Url encode decode
 
 v. 0.1.3    extended tests. syntax fixes.
