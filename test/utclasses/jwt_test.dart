@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 /// Unit testing the JWT object
 ///
 void initJWT() {
-  // TODO: [dev] implement JWT test suite
   /// T1:
   /// Check the segment header init
   ///
@@ -28,6 +27,46 @@ void initJWT() {
   /// T2:
   /// Check the segment payload init
   ///
+  /// A) test simple fields from registered claims
+  ///
+  final segPayload = SegmentPayload(iss: 'Ivmanto.dev', sub: 'webappID');
+  expect(segPayload, isA<SegmentPayload>());
+  expect(segPayload, isNotNull);
+  expect(segPayload.iss, 'Ivmanto.dev');
+
+  /// B) test simple fields + aud (list)
+  ///
+  final segPayload2 =
+      SegmentPayload(iss: 'Ivmanto.dev', sub: 'webappID', aud: ['com', 'dev']);
+  expect(segPayload2, isA<SegmentPayload>());
+  expect(segPayload2, isNotNull);
+  expect(segPayload2.sub, 'webappID');
+  expect(segPayload2.aud, isList);
+  expect(segPayload2.aud[0], 'com');
+  expect(segPayload2.aud[1], 'dev');
+
+  /// C) test exp and iat as integers
+  ///
+  final segPayload3 = SegmentPayload(exp: 0, iat: 0);
+  expect(segPayload3, isA<SegmentPayload>());
+  expect(segPayload3, isNotNull);
+  expect(segPayload3.exp, 0);
+  expect(segPayload3.iat, 0);
+
+  /// D) test not registered claims, aud as single item (not in list)
+  ///
+  final jsonPayload =
+      json.decode('{"myClaim": "NT", "aud": "com", "jti": "eE43dT100"}')
+          as Map<String, dynamic>;
+  final segPayload4 = SegmentPayload.fromJson(jsonPayload);
+  expect(segPayload4, isA<SegmentPayload>());
+  expect(segPayload4, isNotNull);
+  final jp = segPayload4.toJson();
+  expect(jp, isA<Map<String, dynamic>>());
+  expect(jp, isNotNull);
+  expect(jp['myClaim'], 'NT');
+  expect(jp['aud'], 'com');
+  expect(jp['jti'], 'eE43dT100');
 }
 
 void verifyOwnIssuedJWT() async {
