@@ -15,8 +15,8 @@ Future<bool> _verifyClaims(SegmentPayload claims) async {
   final now = Utilities.currentTimeInSMS();
 
   /// If not_before is active - consider it for time validity
-  if (nbf >= 0 && nbf < now + 180) {
-    if (exp > now + 180) {
+  if (nbf >= 0 && nbf < now + 60) {
+    if (exp > now + 60) {
       result = true;
     }
   }

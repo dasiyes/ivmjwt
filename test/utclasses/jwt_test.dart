@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:ivmjwt/ivmjwt.dart';
 import 'package:test/test.dart';
@@ -201,7 +201,31 @@ void testIvmCheckIntegrity() async {
 ///
 /// tests Claims
 ///
-void testIvmCheckClaims() async {}
+/// A) testing time validity & nbf
+void testIvmCheckClaims() async {
+  final now = Utilities.currentTimeInSMS();
+  final jsonPayload = json.decode(
+          '{\"iss\": \"Ivmanto.com\", \"maxAge\": 3600, \"nbf\": ${now + 90}, \"aud\": \"com\", \"jti\": \"eE43dT100\"}')
+      as Map<String, dynamic>;
+  final segPayload = SegmentPayload.fromJson(jsonPayload);
+  final issObj = IvmJWT(segPayload);
+  final obj = await issObj.issueJWTRS256();
+  final token = obj['token'].toString();
+  final keys = obj['publicKey'].toString();
+
+  final jwtTV = await IvmJWT.decodeJWTRS256(token, keys);
+  expect(jwtTV, isNull);
+
+  print('...waiting 90 seconds');
+  final _timer = Timer(const Duration(seconds: 93), () async {
+    print('wait completed!');
+    final jwtTV2 = await IvmJWT.decodeJWTRS256(token, keys);
+    expect(jwtTV2, isNotNull);
+    expect(jwtTV2, isA<Map<String, dynamic>>());
+    expect(jwtTV2['iss'], 'Ivmanto.com');
+    expect(jwtTV2['jti'], 'eE43dT100');
+  });
+}
 
 /// Units testing _verifyJWTRS256 method
 ///
